@@ -80,7 +80,21 @@ template&lt;class T=int, typename Alloc&gt; class Swa(T a,T b) { T temp; temp = 
   ]]></content></entry><entry><title>编译</title><url>/post/compile-u6c6n.html</url><categories><category>编译</category></categories><tags><tag>编译</tag></tags><content type="html"><![CDATA[  编译 编译命令 单文件编译
 g++ test.cpp -o test -fsanitize=address cmake和make编译
 设置安装目录：设置输出目录（+安装目录）
-./configure cmake -S . -B build # 或使用 cd build + cmake ../ cd build make -sj 2 2&amp;gt;&amp;amp;1|grep rror # -B always-make 总是重新构建所有 # -d | more 打印调试信息 # -n 预演make，但不实际执行，可以将其重定向到一个文件中 # --DDEBUG=ON debug模式 # -j4 多线程编译 # -s 静默安装 make install -sj 16 ctest 或 ./hello_test # 执行测试, ctest需add_test make unistall # 卸载安装的程序 make clean # 删除make产生的文件 make distclean # 删除由./configure产生的文件 编译脚本build.sh #!/bin/sh set -x SOURCE_DIR=`pwd` # 只能以./build.sh执行，不能在文件夹外执行 BUILD_DIR=${BUILD_DIR:-../build} BUILD_TYPE=${BUILD_TYPE:-release} INSTALL_DIR=${INSTALL_DIR:-../${BUILD_TYPE}-install-cpp11} CXX=${CXX:-g++} ln -sf $BUILD_DIR/$BUILD_TYPE-cpp11/compile_commands.json mkdir -p $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cd $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cmake \ -DCMAKE_BUILD_TYPE=$BUILD_TYPE \ -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ $SOURCE_DIR \ &amp;amp;&amp;amp; make $* 优化级别 g++ -c -Q -O2 …  ]]></content></entry><entry><title>内存管理</title><url>/post/memory-management-z1c7hkf.html</url><categories><category>内存管理</category></categories><tags><tag>内存</tag></tags><content type="html"><![CDATA[  内存管理 内存分区 分为代码区、常量区、全局/静态区、堆区、栈区
+./configure cmake -S . -B build # 或使用 cd build + cmake ../ cd build make -sj 2 2&amp;gt;&amp;amp;1|grep rror # -B always-make 总是重新构建所有 # -d | more 打印调试信息 # -n 预演make，但不实际执行，可以将其重定向到一个文件中 # --DDEBUG=ON debug模式 # -j4 多线程编译 # -s 静默安装 make install -sj 16 ctest 或 ./hello_test # 执行测试, ctest需add_test make unistall # 卸载安装的程序 make clean # 删除make产生的文件 make distclean # 删除由./configure产生的文件 编译脚本build.sh #!/bin/sh set -x SOURCE_DIR=`pwd` # 只能以./build.sh执行，不能在文件夹外执行 BUILD_DIR=${BUILD_DIR:-../build} BUILD_TYPE=${BUILD_TYPE:-release} INSTALL_DIR=${INSTALL_DIR:-../${BUILD_TYPE}-install-cpp11} CXX=${CXX:-g++} ln -sf $BUILD_DIR/$BUILD_TYPE-cpp11/compile_commands.json mkdir -p $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cd $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cmake \ -DCMAKE_BUILD_TYPE=$BUILD_TYPE \ -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ $SOURCE_DIR \ &amp;amp;&amp;amp; make $* 优化级别 g++ -c -Q -O2 …  ]]></content></entry><entry><title>Linux</title><url>/post/linux-hqnng.html</url><categories><category>工具</category></categories><tags><tag>Linux</tag></tags><content type="html"><![CDATA[  Linux 进程 查看进程ps/top ps 显示进程某个时间点的状态（PID、终端、使用的CPU时间）
+选项 作用 -aux
+-ef 显示所有进程 -e 显示环境变量 &amp;ndash;forest 进程树 -eT 显示线程信息 ps -ef | grep defunct
+ps aux | grep Z
+查看僵尸进程 top 实时显示进程信息
+选项 作用 -b 使用批处理模式输出。
+和-n一起使用，把 top 命令重定向到文件中 -H 查看线程 -n 设定显示的总次数，完成后将会自动退出 -p PID 仅查看指定 PID 的进程 -d 秒数 指定 top 命令每隔几秒更新（默认3s） top -b -H -n 1 -p PID |grep PPID |awk &amp;lsquo;{print $9}&amp;rsquo; &amp;raquo; filename
+筛选PPID，提取每行的第9列（CPU使用率），重定位到文件中
+进程信息解读 指标 含义 users 登录用户数 load average 系统平均负载（最近1min、5min、15min，值越大说明系统负载越高） running 运行状态进程数 sleeping 休眠状态进程数 zombie 僵尸进程数 PR 进程优先级 NI 进程的谦让度值 VIRT/VSZ 占用虚拟内存量 RES/RSS 占用物理内存量 SHR 共享的内存总量 S/STAT 进程状态 TIME 进程占用的CPU时间 结束进程kill 常见信号：信号
+命令 功能 killall http* kill指定进程名 kill -15 PID kill默认，发送SIGTERM 信号 kill -2 PID
+kill -s SIGINT PID 使用CTRL + C kill -s SIGCHLD PID kill僵尸进程 进程优先级（+调度策略） 普通进程：renice
+-n 5 指定nice值为5
+sudo renice -n 5 PID 实时进程：chrt
+-p 指定PID，-f 修改调度策略为SCHED_FIFO，修改优先级为10
+chrt -p -f 10 PID chrt -p PID # 查看进程优先级和调度策略 消息队列 # 查看消息队列, perms权限, messages消息数量 ipcs -q 内存 显示内存使用情况（物理内存、交换内存、内核缓冲区 …  ]]></content></entry><entry><title>内存管理</title><url>/post/memory-management-z1c7hkf.html</url><categories><category>内存管理</category></categories><tags><tag>内存</tag></tags><content type="html"><![CDATA[  内存管理 内存分区 分为代码区、常量区、全局/静态区、堆区、栈区
 参考进程地址空间
 内存分配位置 参考：进程地址空间
 代码 分配位置 char str[] 字符数组 栈或全局区 const char str[] 字符数组（即使字符串相同，其内存地址也不同） 栈或全局区 char *str=&amp;ldquo;hello&amp;rdquo; 字符常量（相同字符常量在文字常量区仅保存一份，即地址相同）
