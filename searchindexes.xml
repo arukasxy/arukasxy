@@ -77,7 +77,18 @@ template&lt;class T=int, typename Alloc&gt; class Swa(T a,T b) { T temp; temp = 
 当实参为左值或者左值引用（A&amp;）时，函数模板中 T&amp;&amp; 将转变为 A&amp;（A&amp; &amp;&amp; = A&amp;） 当实参为右值或者右值引用（A&amp;&amp;）时，函数模板中 T&amp;&amp; 将转变为 A&amp;&amp;（A&amp;&amp; &amp;&amp; = A&amp;&amp;） template &lt;typename T&gt; void function(T&amp;&amp; t) { otherdef(forward&lt;T&gt;(t)); } ‍
   ]]></content></entry><entry><title>string字符串</title><url>/post/string-string-1g9olm.html</url><categories><category>数据结构</category></categories><tags><tag>字符串</tag></tags><content type="html"><![CDATA[  string字符串 翻转字符串 reverse(s.begin(), s.end()); reverse(s.begin()+i , s.begin()+i+k); // 翻转以i为起始的k个字符串 void reverse(char *str, int n){ std::reverse(str, str+n); } 分割split void SplitString(const std::string&amp;amp; s, std::vector&amp;lt;std::string&amp;gt;&amp;amp; v, const std::string&amp;amp; c) { std::string::size_type pos1, pos2; pos2 = s.find(c); pos1 = 0; while(std::string::npos != pos2) { // if(pos2 != pos1) 忽略空子串 v.push_back(s.substr(pos1, pos2-pos1)); pos1 = pos2 + c.size(); pos2 = s.find(c, pos1); } if(pos1 != s.length()) v.push_back(s.substr(pos1)); } 使用stringstream：会保存空字符串，支持连续分隔符（中间为空字符串），支持字符串分隔符
 #include &amp;lt;sstream&amp;gt; stringstream ss(line) 或 ss&amp;lt;&amp;lt;line; # n个字符串 for(int i=0;i&amp;lt;n;i++) getline(ss,v[i],&amp;#39;,&amp;#39;); # 不确定字符串数目 while(getline(ss,str,&amp;#39;,&amp;#39;)) vec.push_back(str); 分隔符可能连续：
-void SplitString(const std::string&amp;amp; str, std::vector&amp;lt;std::string&amp;gt;&amp;amp; res, const char chrc) { if ( str.empty( ) ) return ;	//判空 std::string strs = str + chrc; //末尾加上分隔符方便计算 size_t size = …  ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
+void SplitString(const std::string&amp;amp; str, std::vector&amp;lt;std::string&amp;gt;&amp;amp; res, const char chrc) { if ( str.empty( ) ) return ;	//判空 std::string strs = str + chrc; //末尾加上分隔符方便计算 size_t size = …  ]]></content></entry><entry><title>类</title><url>/post/kind-z2cvctu.html</url><categories><category>语法</category></categories><tags><tag>类</tag></tags><content type="html"><![CDATA[  类 struct class struct 默认访问权限 private public 默认继承 private public 定义模板参数
+（代替typename） √ × C++对struct进行了拓展，和C中的struct不同
+封装 与C中的struct不同，类将数据和函数结合起来，使用访问权限来隐藏实现细节，提供对外接口
+访问控制 子类 友元 类外 public √ √ √ protected √ √ × private × √ × 继承 内存布局（https://www.cnblogs.com/QG-whz/p/4909359.html）：虚函数表指针vfptr (如果父类没有虚函数，则没有)+ 基类非静态成员 + 派生类非静态成员
+默认private继承 多继承 内存布局：（虚函数表指针vfptr(如果基类中没有虚函数表，则不需要vfptr) + 基类非静态成员（如果基类存在基类，则先写基类的基类的成员变量，再写基类的成员变量）） * 基类个数（按继承顺序） + 派生类非静态成员
+使用：
+struct IMachine: IPrinter, IScanner class Derived: public BaseA, public BaseB { } 虚拟继承 内存布局：（虚函数表指针vfptr + 虚基类指针vbptr + 基类非静态成员（不包含基类的基类））* 基类个数 + 虚祖父类非静态成员（如果仅是B虚继承A,则没有虚祖父类；仅在虚拟菱形继承中存在） + 派生类非静态成员
+原理：原本的父类成员会被替换为 一个虚基类指针vbptr，这个指针指向一张虚基类表，虚基类表里存放 vbptr到该类首地址的偏移。
+作用：
+解决多继承/菱形继承的“数据冗余”：在一个派生类中保留间接基类的多份同名成员，例如A派生B和C，D继承了B和C，则A的成员变量和成员函数在D中有两份。虚继承中仅保留一份间接基类的成员。 解决命名冲突：D如果想访问A的成员变量，则编译器不知道它究竟来自 A &amp;ndash;&amp;gt;B&amp;ndash;&amp;gt;D 这条路径，还是来自 A&amp;ndash;&amp;gt;C&amp;ndash;&amp;gt;D 这条路径，产生二义性，需要使用B::m_a来指明。 使用：
+class B: virtual public A{} 多态 含义：根据不同的对象类型，调用不同的函数
+编译时 …  ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
 我们的愿景 延续 NexT 经典的黑白调搭配，保持简单的易用性及强大的功能。
 使用反馈 加入 GitHub Discussions 或 Gitter 在线讨论 &amp;#x1f37b; GitHub Issues 提交错误报告 &amp;#x1f41b; GitHub Feature 表新功能的想法 &amp;#x2728; 同时国内用户也可加入 QQ 群交流： 604710815
   </content></entry><entry><title>站点示例</title><url>/flinks.html</url><categories/><tags/><content type="html">  如想交换本站友情链接，请在评论区留下你的站点信息，格式参考如下：
