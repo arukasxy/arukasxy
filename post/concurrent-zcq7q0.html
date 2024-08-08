@@ -1,0 +1,806 @@
+<!doctype html><html lang=zh-CN data-theme=dark><head><meta charset=UTF-8><meta name=viewport content="width=device-width"><meta name=theme-color content="#222" media="(prefers-color-scheme: dark)"><meta name=generator content="Hugo 0.131.0"><link rel="shortcut icon" type=image/x-icon href=/imgs/icons/favicon.ico><link rel=icon type=image/x-icon href=/imgs/icons/favicon.ico><link rel=icon type=image/png sizes=16x16 href=/imgs/icons/favicon_16x16_next.png><link rel=icon type=image/png sizes=32x32 href=/imgs/icons/favicon_32_32_next.png><link rel=apple-touch-icon sizes=180x180 href=/imgs/icons/apple_touch_icon_next.png><meta itemprop=name content="并发"><meta itemprop=description content><meta name=description content><meta itemprop=datePublished zgotmplz><meta itemprop=dateModified zgotmplz><meta itemprop=image content="/imgs/hugo_next_avatar.png"><meta itemprop=keywords content="多线程"><meta property="og:type" content="article"><meta property="og:title" content="并发"><meta property="og:description" content><meta property="og:image" content="/imgs/hugo_next_avatar.png"><meta property="og:image:width" content="312"><meta property="og:image:height" content="312"><meta property="og:image:type" content="image/jpeg/png/svg/jpg"><meta property="og:url" content="/post/concurrent-zcq7q0.html"><meta property="og:site_name" content="Sakura Notes"><meta property="og:locale" content="zh-CN"><meta property="article:author" content="arukasxy"><meta property="article:published_time" content="2024-07-09 10:20:43 +0800 +0800"><meta property="article:modified_time" content="2024-08-08 13:18:11 +0800 +0800"><link type=text/css rel=stylesheet href=/3rd/font-awesome/6.6.0/css/all.min.css><link type=text/css rel=stylesheet href=/3rd/animate.css/4.1.1/animate.min.css><link type=text/css rel=stylesheet href=/3rd/viewerjs/1.11.6/viewer.min.css><link rel=stylesheet href=/css/main.min.ab1c3ae9fc9258afee98d91f39e4c6c4fe3d7d90222efbbe570558fcadfc2105.css><style type=text/css>.post-footer,.flinks-list-footer hr:after{content:"~ 我可是有底线的哟 ~"}</style><script type=text/javascript>(function(){localDB={set:function(e,t,n){if(n===0)return;const s=new Date,o=n*864e5,i={value:t,expiry:s.getTime()+o};localStorage.setItem(e,JSON.stringify(i))},get:function(e){const t=localStorage.getItem(e);if(!t)return void 0;const n=JSON.parse(t),s=new Date;return s.getTime()>n.expiry?(localStorage.removeItem(e),void 0):n.value}},theme={active:function(){const e=localDB.get("theme");if(e==null)return;theme.toggle(e),window.matchMedia("(prefers-color-scheme: dark)").addListener(function(e){theme.toggle(e.matches?"dark":"light")})},toggle:function(e){document.documentElement.setAttribute("data-theme",e),localDB.set("theme",e,2);const t=document.querySelector("iframe.giscus-frame");if(t){const n={setConfig:{theme:e}};t.contentWindow.postMessage({giscus:n},"https://giscus.app")}}},theme.active()})(window)</script><script class=next-config data-name=page type=application/json>{"comments":true,"isHome":false,"isPage":true,"path":"concurrent-zcq7q0.html","permalink":"/post/concurrent-zcq7q0.html","title":"并发","waline":{"js":[{"alias":"@waline/client","alias_name":"waline","file":"dist/pageview.js","name":"pageview","version":"2.15.8"},{"alias":"@waline/client","alias_name":"waline","file":"dist/comment.js","name":"comment","version":"2.15.8"}]}}</script><script type=text/javascript>document.addEventListener("DOMContentLoaded",()=>{var e=document.createElement("script");e.charset="UTF-8",e.src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js",e.async=!1,e.defer=!0,document.head.appendChild(e),e.onload=function(){NexT.utils.fmtBusuanzi()}})</script><title>并发 - Sakura Notes</title><noscript><link rel=stylesheet href=/css/noscript.css></noscript></head><body itemscope itemtype=http://schema.org/WebPage class=use-motion><div class=headband></div><main class=main><header class=header itemscope itemtype=http://schema.org/WPHeader><div class=header-inner><div class=site-brand-container><div class=site-nav-toggle><div class=toggle aria-label role=button><span class=toggle-line></span>
+<span class=toggle-line></span>
+<span class=toggle-line></span></div></div><div class=site-meta><a href=/ class=brand rel=start><i class=logo-line></i><h1 class=site-title>Sakura Notes</h1><i class=logo-line></i></a><p class=site-subtitle itemprop=description>计算机,C++,数据库</p></div><div class=site-nav-right><div class="toggle popup-trigger"><i class="fa fa-search fa-fw fa-lg"></i></div></div></div><nav class=site-nav><ul class="main-menu menu"><li class="menu-item menu-item-home"><a href=/ class=hvr-icon-pulse rel=section><i class="fa fa-home hvr-icon"></i>首页</a></li><li class="menu-item menu-item-archives"><a href=/archives/ class=hvr-icon-pulse rel=section><i class="fa fa-archive hvr-icon"></i>归档
+<span class=badge>16</span></a></li><li class="menu-item menu-item-search"><a role=button class="popup-trigger hvr-icon-pulse"><i class="fa fa-search fa-fw hvr-icon"></i>搜索</a></li></ul></nav><div class=search-pop-overlay><div class="popup search-popup"><div class=search-header><span class=search-icon><i class="fa fa-search"></i></span><div class=search-input-container><input autocomplete=off autocapitalize=off maxlength=80 placeholder=搜索... spellcheck=false type=search class=search-input></div><span class=popup-btn-close role=button><i class="fa fa-times-circle"></i></span></div><div class="search-result-container no-result"><div class=search-result-icon><i class="fa fa-spinner fa-pulse fa-5x"></i></div></div></div></div></div><div class="toggle sidebar-toggle" role=button><span class=toggle-line></span>
+<span class=toggle-line></span>
+<span class=toggle-line></span></div><aside class=sidebar><div class="sidebar-inner sidebar-nav-active sidebar-toc-active"><ul class=sidebar-nav><li class=sidebar-nav-toc>文章目录</li><li class=sidebar-nav-overview>站点概览</li></ul><div class=sidebar-panel-container><div class="post-toc-wrap sidebar-panel"><div class="post-toc animated"><nav id=TableOfContents><ul><li><a href=#进程状态>进程状态</a></li><li><a href=#进程描述符pcb>进程描述符（PCB）</a></li><li><a href=#僵尸进程孤儿进程>僵尸进程/孤儿进程</a></li><li><a href=#进程调度>进程调度</a></li><li><a href=#进程优先级pri>进程优先级PRI</a><ul><li><a href=#普通进程>普通进程</a></li><li><a href=#实时进程>实时进程</a></li><li><a href=#优先级更新>优先级更新</a></li></ul></li><li><a href=#进程地址空间>进程地址空间</a><ul><li><a href=#数据段和代码段分离>数据段和代码段分离</a></li></ul></li><li><a href=#创建进程fork>创建进程fork</a><ul><li><a href=#创建多个子进程>创建多个子进程</a></li></ul></li><li><a href=#进程通信>进程通信</a><ul><li><a href=#管道>管道</a><ul><li><a href=#匿名管道pipe>匿名管道pipe</a></li><li><a href=#命名管道fifo>命名管道FIFO</a></li></ul></li><li><a href=#共享内存>共享内存</a></li><li><a href=#消息队列>消息队列</a></li><li><a href=#信号>信号</a></li><li><a href=#socket>Socket</a></li></ul></li><li><a href=#进程相关函数>进程相关函数</a></li><li><a href=#等待与分离>等待与分离</a></li></ul><ul><li><a href=#创建线程thread>创建线程thread</a></li><li><a href=#线程通信>线程通信</a><ul><li><a href=#队列>队列</a></li><li><a href=#栈>栈</a></li></ul></li><li><a href=#线程相关函数>线程相关函数</a></li><li><a href=#等待与分离-1>等待与分离</a></li><li><a href=#异步async>异步async</a></li><li><a href=#线程池>线程池</a><ul><li><a href=#线程数量阻抗匹配原则>线程数量（阻抗匹配原则）</a></li></ul></li></ul><ul><li><a href=#信号量>信号量</a><ul><li><a href=#基于内存的信号量>基于内存的信号量</a></li><li><a href=#有名信号量>有名信号量</a></li></ul></li><li><a href=#锁>锁</a><ul><li><a href=#互斥锁mutex>互斥锁mutex</a><ul><li><a href=#尝试锁定延迟锁定>尝试锁定（+延迟锁定）</a></li><li><a href=#加多个锁>加多个锁</a></li></ul></li><li><a href=#读写锁>读写锁</a></li><li><a href=#自旋锁>自旋锁</a></li><li><a href=#超时锁>超时锁</a></li><li><a href=#可重入锁>可重入锁</a></li><li><a href=#文件锁>文件锁</a></li></ul></li><li><a href=#原子操作>原子操作</a><ul><li><a href=#创建>创建</a></li><li><a href=#成员函数>成员函数</a></li><li><a href=#cas比较-and-交换>CAS（比较 And 交换）</a><ul><li><a href=#有界原子操作>有界原子操作</a></li></ul></li><li><a href=#原子变量数组>原子变量数组</a></li></ul></li><li><a href=#条件变量>条件变量</a><ul><li><a href=#虚假唤醒>虚假唤醒</a></li></ul></li><li><a href=#事件通知eventfd>事件通知eventfd</a></li></ul><ul><li><a href=#future>future</a></li></ul><ul><li><a href=#设置退出函数>设置退出函数</a></li></ul><ul><li><a href=#必要条件>必要条件</a></li><li><a href=#预防死锁>预防死锁</a><ul><li><a href=#银行家算法>银行家算法</a></li></ul></li><li><a href=#检测和解决死锁>检测和解决死锁</a><ul><li><a href=#进程-资源分配图>进程-资源分配图</a></li></ul></li></ul></nav></div></div><div class="site-overview-wrap sidebar-panel"><div class="site-author site-overview-item animated" itemprop=author itemscope itemtype=http://schema.org/Person><img class=site-author-image itemprop=image alt=arukasxy src=/imgs/img-lazy-loading.gif data-src=/imgs/hugo_next_avatar.png><p class=site-author-name itemprop=name>arukasxy</p><div class=site-description itemprop=description></div></div><div class="site-state-wrap site-overview-item animated"><nav class=site-state><div class="site-state-item site-state-posts"><a href=/archives/><span class=site-state-item-count>16</span>
+<span class=site-state-item-name>日志</span></a></div><div class="site-state-item site-state-categories"><a href=/categories/><span class=site-state-item-count>7</span>
+<span class=site-state-item-name>分类</span></a></div><div class="site-state-item site-state-tags"><a href=/tags/><span class=site-state-item-count>17</span>
+<span class=site-state-item-name>标签</span></a></div></nav></div><div class="links-of-social site-overview-item animated"><span class=links-of-social-item><a href=https://github.com/arukasxy title="Github → https://github.com/arukasxy" rel=noopener class=hvr-icon-pulse target=_blank><i class="fab fa-github fa-fw hvr-icon"></i>
+Github</a></span></div><div class="cc-license animated" itemprop=license><a href=https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh class=cc-opacity rel=noopener target=_blank title=共享知识><img src=/imgs/img-lazy-loading.gif data-src=/imgs/cc/big/by_nc_sa.svg alt=共享知识></a></div></div></div></div><div id=siteinfo-card-widget class=sidebar-card-widget><div class=item-headline><i class="fas fa-chart-line"></i>
+<span>网站资讯</span></div><div class=siteinfo><div class=siteinfo-item><div class=item-name><i class="fa-solid fa-calendar-check"></i>已运行：</div><div class=item-count id=runTimes data-publishdate=2024-08-08T00:00:00+08:00></div></div><div class=siteinfo-item><div class=item-name><i class="fas fa fa-user"></i>总访客数：</div><div class=item-count id=busuanzi_value_site_uv><i class="fa fa-sync fa-spin"></i></div></div><div class=siteinfo-item><div class=item-name><i class="fas fa fa-eye"></i>页面浏览：</div><div class=item-count id=busuanzi_value_site_pv><i class="fa fa-sync fa-spin"></i></div></div><div class=siteinfo-item><div class=item-name><i class="fa fa-font"></i>总字数：</div><div class=item-count id=wordsCount data-count=38382></div></div><div class=siteinfo-item><div class=item-name><i class="fa fa-mug-hot"></i>阅读约：</div><div class=item-count id=readTimes data-times=85></div></div><div class=siteinfo-item><div class=item-name><i class="fa fa-clock-rotate-left"></i>最后更新于：</div><div class=item-count id=last-push-date data-lastpushdate=2024-07-11T20:16:25+08:00></div></div></div></div></aside><div class=sidebar-dimmer></div></header><div class=tool-buttons><div id=goto-comments class="button goto-comments" title=直达评论><i class="fas fa-comments"></i></div><div id=toggle-theme class=button title=深浅模式切换><i class="fas fa-adjust"></i></div><div class=back-to-top role=button title=返回顶部><i class="fa fa-arrow-up"></i>
+<span>0%</span></div></div><div class=reading-progress-bar></div><a role=button class="book-mark-link book-mark-link-fixed"></a><a href=https://github.com/hugo-next rel="noopener external nofollow noreferrer" target=_blank title="Follow me on GitHub" class="exturl github-corner"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0 0 115 115h15l12 27L250 250V0z"/><path d="M128.3 109C113.8 99.7 119 89.6 119 89.6 122 82.7 120.5 78.6 120.5 78.6 119.2 72 123.4 76.3 123.4 76.3 127.3 80.9 125.5 87.3 125.5 87.3 122.9 97.6 130.6 101.9 134.4 103.2" fill="currentcolor" style="transform-origin:130px 106px" class="octo-arm"/><path d="M115 115C114.9 115.1 118.7 116.5 119.8 115.4l13.9-13.8C136.9 99.2 139.9 98.4 142.2 98.6 133.8 88 127.5 74.4 143.8 58 148.5 53.4 154 51.2 159.7 51 160.3 49.4 163.2 43.6 171.4 40.1 171.4 40.1 176.1 42.5 178.8 56.2 183.1 58.6 187.2 61.8 190.9 65.4 194.5 69 197.7 73.2 200.1 77.6 213.8 80.2 216.3 84.9 216.3 84.9 212.7 93.1 206.9 96 205.4 96.6 205.1 102.4 203 107.8 198.3 112.5 181.9 128.9 168.3 122.5 157.7 114.1 157.9 116.9 156.7 120.9 152.7 124.9L141 136.5C139.8 137.7 141.6 141.9 141.8 141.8z" fill="currentcolor" class="octo-body"/></svg></a><noscript><div class=noscript-warning>Theme NexT works best with JavaScript enabled</div></noscript><div class="main-inner post posts-expand"><div class=post-block><article itemscope itemtype=http://schema.org/Article class=post-content lang><link itemprop=mainEntityOfPage href=/post/concurrent-zcq7q0.html><span hidden itemprop=author itemscope itemtype=http://schema.org/Person><meta itemprop=image content="/imgs/hugo_next_avatar.png"><meta itemprop=name content="arukasxy"></span><span hidden itemprop=publisher itemscope itemtype=http://schema.org/Organization><meta itemprop=name content="arukasxy"><meta itemprop=description content></span><span hidden itemprop=post itemscope itemtype=http://schema.org/CreativeWork><meta itemprop=name content="并发"><meta itemprop=description content="并发 进程 线程 协程 本质 资源分配 CPU调度的最小单位 用户态线程 在堆上模拟栈 + 实现调度器 通信 进程通信IPC 共享内存 切换开销 CPU的上下文切换（保存"></span><header class=post-header><h1 class=post-title itemprop="name headline">并发
+<a href=https://github.com/user-name/repo-name/tree/branch-name/subdirectory-name/post/concurrent-zcq7q0.md rel="noopener external nofollow noreferrer" target=_blank class="exturl post-edit-link" title=编辑><i class="fa fa-pen-nib"></i></a></h1><div class=post-meta-container><div class=post-meta-items><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-calendar"></i>
+</span><span class=post-meta-item-text title=发表于>发表于：
+</span><time title="创建时间：2024-07-09 10:20:43 +0800 +0800" itemprop="dateCreated datePublished" datetime="2024-07-09 10:20:43 +0800 +0800">2024-07-09
+</time></span><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-calendar-check"></i>
+</span><span class=post-meta-item-text title=更新于>更新于：
+</span><time title=修改时间：2024-08-08T13:18:11+08:00 itemprop=dateModified datetime=2024-08-08T13:18:11+08:00>2024-08-08</time>
+</span><span class=post-meta-item><span class=post-meta-item-icon><i class="fas fa-solid fa-folder-open"></i>
+</span><span class=post-meta-item-text title=分类于>分类于：
+</span><span itemprop=about itemscope itemtype=http://schema.org/Thing><a href=/categories/%E5%B9%B6%E5%8F%91 itemprop=url rel=index><span itemprop=name>并发</span></a></span></span></div><div class=post-meta-items><span class=post-meta-item title=字数><span class=post-meta-item-icon><i class="fas fa-solid fa-file-word"></i>
+</span><span class=post-meta-item-text>字数：</span>
+<span>11452</span>
+</span><span class=post-meta-item title=阅读><span class=post-meta-item-icon><i class="fas fa-solid fa-clock"></i>
+</span><span class=post-meta-item-text>阅读：&ap;</span>
+<span>23分钟</span>
+</span><span class=post-meta-item title=浏览><span class=post-meta-item-icon><i class="fas fa-solid fa-eye"></i>
+</span><span class=post-meta-item-text>浏览：
+</span><span id=busuanzi_value_page_pv data-path=/post/concurrent-zcq7q0.html><i class="fa fa-sync fa-spin"></i></span></span></div></div></header><div class="post-body autonumber" itemprop=articleBody><h1 id=并发>并发
+<a class=header-anchor href=#%e5%b9%b6%e5%8f%91></a></h1><table><thead><tr><th></th><th>进程</th><th>线程</th><th>协程</th></tr></thead><tbody><tr><td>本质</td><td>资源分配</td><td>CPU调度的最小单位</td><td>用户态线程<br>在堆上模拟栈 + 实现调度器</td></tr><tr><td>通信</td><td>进程通信IPC</td><td>共享内存</td><td></td></tr><tr><td>切换开销</td><td>CPU的上下文切换<sup>（保存和恢复相关寄存器的内容）</sup><br>加载页表<br>可能刷新<sup>（当ASID分配完后，flush所有TLB，重新分配ASID）</sup>快表TLB<br>系统调用</td><td>CPU的上下文切换<br>系统调用<br></td><td>CPU的上下文切换</td></tr><tr><td>共享</td><td></td><td>内存空间<br>文件描述符<br>信号处理器<br>进程 ID / 进程组 ID<br></td><td></td></tr><tr><td>不共享</td><td></td><td>栈<br>线程 ID<br>寄存器<br>错误返回码<sup>（系统调用或库函数发生错误时，会设置全局变量 errno，各个线程的错误返回码应该是独立的）</sup><br>信号屏蔽码<sup>（每个线程所感兴趣的信号不同，所以线程的信号屏蔽码应该由线程自己管理；但每个线程都共享本进程的信号处理器）</sup><br></td><td></td></tr><tr><td>优点</td><td></td><td>开销小<br>通信方便</td><td>不需要用户态转换到内核态的切换成本</td></tr><tr><td>缺点</td><td></td><td>线程发生错误后，OS会终止整个进程</td><td></td></tr></tbody></table><table><thead><tr><th></th><th>优点</th><th>缺点</th><th>场景</th></tr></thead><tbody><tr><td>一个单线程的进程</td><td>简单<br><br></td><td>不能发挥多核能力<br>EventLoop非抢占，可能发生优先级反转<br></td><td>限制程序的CPU占用率<br>辅助性程序和主进程在同一台机器上时<sup>（如日志文件压缩备份服务应使用单线程压缩工具（gzip/bzip））</sup><br>程序可能会fork(2)<br>看门狗程序（启动其他进程）<br>IO很快达到瓶颈<sup>（如静态Web服务器/FTP服务器，很少的CPU负载能让IO跑满）</sup><br>任务执行时间&#187;进程创建和销毁时间</td></tr><tr><td>一个多线程的进程<br></td><td>减少CPU Cache换入换出<br>可scale up<sup>(纵向拓展，即机器性能提升)</sup></td><td></td><td>工作集<sup>（服务程序响应一次请求所访问的内存大小）</sup>较大<br>共享数据可修改<br>区分事件优先级<br>不是IO或CPU密集型<sup>（latency和throughput同样重要，不是逻辑简单的IO密集型或CPU密集型程序）</sup></td></tr><tr><td>多个单线程的进程<sup>（将一个单线程的进程 运行多份）</sup></td><td>简单</td><td></td><td>工作集<sup>（服务程序响应一次请求所访问的内存大小）</sup>较小<br>CPU密集型<br>无共享数据或共享数据只读</td></tr><tr><td>主进程 +<br>Worker进程</td><td></td><td></td><td></td></tr></tbody></table><h1 id=进程>进程
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b></a></h1><h2 id=进程状态>进程状态
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e7%8a%b6%e6%80%81></a></h2><p>三态模型：就绪态、运行态、阻塞态</p><p>五态模型：新建态、就绪态、运行态、阻塞态、终止态</p><p>进程控制原语：进程创建、进程阻塞、唤醒进程、进程终止</p><table><thead><tr><th>S/STAT</th><th>含义</th><th>事件</th></tr></thead><tbody><tr><td>R</td><td>TASK_RUNNING<br>已就绪/正在执行<br></td><td>放入CPU的执行队列中</td></tr><tr><td>S</td><td>TASK_INTERRUPTIBLE<br>可中断的睡眠状态<br></td><td>等待事件发生</td></tr><tr><td>D</td><td>TASK_UNINTERRUPTIBLE<br>不可中断的睡眠状态<br></td><td>内核的某些处理流程不能被打断，即不能响应异步信号</td></tr><tr><td>T</td><td>TASK_STOPPED 暂停<br>TASK_TRACED 跟踪<br></td><td>发送SIGSTOP信号<br>gdb调试<br></td></tr><tr><td>Z</td><td>EXIT_ZOMBIE 僵尸进程</td><td></td></tr><tr><td>X</td><td>EXIT_DEAD 退出</td><td>进程即将销毁</td></tr></tbody></table><h2 id=进程描述符pcb>进程描述符（PCB）
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e6%8f%8f%e8%bf%b0%e7%ac%a6pcb></a></h2><p>包括：</p><ul><li>进程标识符</li><li>CPU状态：寄存器</li><li>进程调度信息：进程状态、优先级、其他信息（进程已等待CPU的时间总和、已执行的时间总和等）、阻塞事件</li><li>进程控制信息：程序和数据的首地址、 进程同步和通信机制、资源清单、进程所在队列 PCB 的链接指针</li></ul><h2 id=僵尸进程孤儿进程>僵尸进程/孤儿进程
+<a class=header-anchor href=#%e5%83%b5%e5%b0%b8%e8%bf%9b%e7%a8%8b%e5%ad%a4%e5%84%bf%e8%bf%9b%e7%a8%8b></a></h2><table><thead><tr><th></th><th>僵尸进程</th><th>孤儿进程</th></tr></thead><tbody><tr><td>产生原因</td><td>子进程退出后，父进程没有发起函数请求来读取它的结束状态</td><td>父进程先退出</td></tr><tr><td>后果</td><td>子进程的PCB内存无法释放，造成内存泄漏；占用进程号</td><td>由1号进程领养，无危害</td></tr><tr><td>处理方式</td><td>父进程等待wait子进程结束<br>父进程创建信号处理函数SIGCHLD<sup>(调用wait)</sup><br>父进程忽略SIGCHLD信号，让内核进行回收<br>kill 父进程，由Init进程领养<br>kill -s SIGCHLD PPID<br></td><td>kill -9 pid</td></tr><tr><td>识别方式</td><td>查看进程ps/top</td><td>ps -ef中ppid 为1的进程</td></tr></tbody></table><h2 id=进程调度>进程调度
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e8%b0%83%e5%ba%a6></a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sched.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>sched_setscheduler</span>(<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>task_struct</span> <span style=color:#f92672>*</span>p, <span style=color:#66d9ef>int</span> policy,
+</span></span><span style=display:flex><span>		       <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sched_param</span> <span style=color:#f92672>*</span>param);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sched_param</span> my_param;
+</span></span><span style=display:flex><span>my_param.sched_priority <span style=color:#f92672>=</span><span style=color:#ae81ff>20</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(sched_setscheduler(getpid(),SCHED_FIFO,<span style=color:#f92672>&amp;</span>my_param)){
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;set schedller fail....</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><table><thead><tr><th>适用进程</th><th>调度器</th><th>调度策略</th><th>含义</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>普通进程<br></td><td>CFS<sup>(参考右边的SCHED_NORMAL的CFS算法)</sup><br></td><td>SCHED_NORMAL<br>(SCHED_OTHER<sup>(和SCHED_NORMAL相同)</sup>)</td><td>CFS算法：完全公平调度<sup>（vruntime = （实际运行时间*nice值为0的进程权重）/该进程的权重 vruntime跑的越慢（越小）越会被调度）</sup>，根据优先级权重占比<sup>（优先级权重占 所有进程优先级权重之和 的比例）</sup>，决定不同的时间片长度<br>动态时间片，根据系统负载自调整</td><td></td><td></td></tr><tr><td></td><td></td><td>SCHED_BATCH</td><td>适合批量任务</td><td></td><td></td></tr><tr><td></td><td></td><td>SCHED_IDLE</td><td>最低优先级运行</td><td></td><td></td></tr><tr><td>实时进程<br></td><td>RT<br></td><td>SCHED_FIFO</td><td>先进先出<br>无时间片</td><td></td><td></td></tr><tr><td></td><td></td><td>SCHED_RR</td><td>Roound-Robin<br>时间片轮转<br></td><td></td><td></td></tr><tr><td>限期进程<sup>（必须在规定时间内完成）</sup></td><td>DL<br>(Deadline)<br></td><td>SCHED_DEADLINE</td><td>最早截止时间优先EDF<sup>(Earliest Deadline First)</sup>算法<br>使用红黑树，按进程绝对截止时间排序，选择最小进程运行<br></td><td></td><td></td></tr><tr><td></td><td></td><td>SJF</td><td>短作业优先</td><td>平均等待/周转时间最少</td><td></td></tr><tr><td></td><td></td><td>HRRN<sup>(High Response Ratio Next)</sup></td><td>高响应比<sup>（响应比Rp = (等待时间+要求服务时间)/要求服务时间 = 响应时间/要求服务时长）</sup>优先调度</td><td>有利于短作业</td><td></td></tr></tbody></table><h2 id=进程优先级pri>进程优先级PRI
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e4%bc%98%e5%85%88%e7%ba%a7pri></a></h2><h3 id=普通进程>普通进程
+<a class=header-anchor href=#%e6%99%ae%e9%80%9a%e8%bf%9b%e7%a8%8b></a></h3><p>特点：</p><ul><li>任何 实时进程 优先级都高于 普通进程</li><li>静态优先级不会被内核修改</li><li>通过nice值调整优先级</li><li>优先级越小，分配的基时间量就越少</li></ul><p>$static_priority = nice+20+MAX_RT_PRIO \in[100,139]$</p><p>$PR=static_priority-100\in[0,39]$</p><p>$nice\in[-20,19]$</p><p>MAX_RT_PRIO默认为100</p><h3 id=实时进程>实时进程
+<a class=header-anchor href=#%e5%ae%9e%e6%97%b6%e8%bf%9b%e7%a8%8b></a></h3><p>特点：</p><ul><li>使用chrt调整优先级</li></ul><p>$real_time_priority\in[0,99]$</p><p>$PR=-1-real_time_priority$</p><h3 id=优先级更新>优先级更新
+<a class=header-anchor href=#%e4%bc%98%e5%85%88%e7%ba%a7%e6%9b%b4%e6%96%b0></a></h3><ol><li>用户调整优先级</li><li>根据进入等待状态的频繁程度提升或降低优先级（IO密集型的优先级高）</li><li>长时间得不到执行而被提升优先级</li></ol><h2 id=进程地址空间>进程地址空间
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e5%9c%b0%e5%9d%80%e7%a9%ba%e9%97%b4></a></h2><ul><li>内核空间是所有进程<strong>共享</strong>的</li></ul><p>​<img src=/imgs/img-lazy-loading.gif data-src=https://raw.githubusercontent.com/arukasxy/notes/main/content/post/image-viewer/%E8%BF%9B%E7%A8%8B%E5%9C%B0%E5%9D%80%E7%A9%BA%E9%97%B4-20240725111232-6bl89ry.jpg alt=进程地址空间>​</p><h3 id=数据段和代码段分离>数据段和代码段分离
+<a class=header-anchor href=#%e6%95%b0%e6%8d%ae%e6%ae%b5%e5%92%8c%e4%bb%a3%e7%a0%81%e6%ae%b5%e5%88%86%e7%a6%bb></a></h3><p>优点：</p><ol><li>可重入</li><li>可共享数据</li><li>可保护代码为只读</li><li>更好支持内存回收策略</li><li>可共享代码段</li></ol><p>缺点：不方便编程</p><h2 id=创建进程fork>创建进程fork
+<a class=header-anchor href=#%e5%88%9b%e5%bb%ba%e8%bf%9b%e7%a8%8bfork></a></h2><p>原理：</p><ol><li>复制父进程的页表；将父进程的所有内存页设置为只读</li><li>为子进程创建新的进程描述符</li><li>使用写时复制COW共享地址空间：复制耗时且浪费物理内存；执行exec加载新程序后，复制就没有用了</li><li>将内存页的复制延迟到第一次写入时，触发缺页异常，进入内核态复制页面，将新页面设置为可写，原页面的引用计数 - 1</li><li>如果页面只有一个引用，可以直接修改</li></ol><table><thead><tr><th>共享</th><th>不共享</th></tr></thead><tbody><tr><td>文件描述符，包括socket套接字</td><td>变量，包括全局变量<sup>（如果只做读操作，则共享全局变量）</sup></td></tr><tr><td>物理页面/物理地址空间（使用COW共享只读页面）</td><td>独立的地址空间</td></tr></tbody></table><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e> 
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>pid_t fork(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span><span style=color:#75715e># 子进程返回值为0，父进程返回值为子进程的PID(&gt;0)
+</span></span></span></code></pre></div><h3 id=创建多个子进程>创建多个子进程
+<a class=header-anchor href=#%e5%88%9b%e5%bb%ba%e5%a4%9a%e4%b8%aa%e5%ad%90%e8%bf%9b%e7%a8%8b></a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>// 创建n个子进程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#75715e>// 区分子进程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>pid_t pid;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span>(i<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>;i<span style=color:#f92672>&lt;</span>n;i<span style=color:#f92672>++</span>){
+</span></span><span style=display:flex><span>	pid <span style=color:#f92672>=</span> fork();
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(pid <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>||</span> pid <span style=color:#f92672>==</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>){ <span style=color:#75715e>// 子进程或发生错误
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		<span style=color:#66d9ef>break</span>;
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(pid <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>){ <span style=color:#75715e>// 父进程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>while</span>(wait(NULL)<span style=color:#f92672>!=-</span><span style=color:#ae81ff>1</span>){} <span style=color:#75715e>// 阻塞自己，等待子进程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><h2 id=进程通信>进程通信
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e9%80%9a%e4%bf%a1></a></h2><p>特点：</p><table><thead><tr><th></th><th>管道</th><th>消息队列</th><th>共享内存</th><th>信号</th><th>Socket</th></tr></thead><tbody><tr><td>本质</td><td>内核中的特殊文件</td><td>存放在内存中的消息链表</td><td>相同的物理空间区域</td><td>中断处理</td><td>TCP</td></tr><tr><td>速度</td><td>同步<sup>（管道写进程需要读进程存在）</sup></td><td>异步</td><td>最快</td><td></td><td></td></tr><tr><td>用户进行同步与互斥</td><td>×</td><td>×</td><td>√</td><td>×</td><td></td></tr><tr><td>数据格式</td><td>无格式字节流</td><td>有格式</td><td></td><td></td><td></td></tr><tr><td>内核态和用户态数据拷贝</td><td>√</td><td>√</td><td>×</td><td>使用系统调用</td><td></td></tr></tbody></table><h3 id=管道>管道
+<a class=header-anchor href=#%e7%ae%a1%e9%81%93></a></h3><ul><li><p>本质：内核中的特殊<strong>文件</strong>，内核中维护一块缓存区，其于管道文件相关联</p></li><li><p>无格式数据传输：传输无格式的字节流，需要事先约定数据格式</p></li><li><p>半双工通信：允许信号在两个方向上传输，但某一时刻只允许信号在一个方向上单向传输</p></li><li><p><strong>双向通信</strong>需要2个管道，数据进入管道后成为无主数据，因此1个管道不可能进行双向通信</p></li><li><p>一次性读取操作：数据一旦被读取后就会被抛弃</p></li><li><p>阻塞，即没有数据可读后，读进程阻塞；管道已满后，写进程阻塞</p></li><li><p>如果写端尝试写，但读端不存在，进程被SIGPIPE信号终止</p><p>如果读端尝试读，但写端不存在，且管道中没有数据，则返回0</p></li><li><p>通过内核进行数据传输，需进行多次用户态和内核态切换，数据传输经过内核的缓存区，相比共享内存慢</p></li><li><p>不需要用户进行同步与互斥，同一时刻只能有一个进程访问</p></li></ul><h4 id=匿名管道pipe>匿名管道pipe
+<a class=header-anchor href=#%e5%8c%bf%e5%90%8d%e7%ae%a1%e9%81%93pipe></a></h4><p>特点：</p><ol><li><p>只能具有血缘关系的进程间通信</p><blockquote><p>因为要从公共祖先处继承 <strong>管道文件描述符</strong></p></blockquote></li><li><p>基于内存进行操作，读写速度更快</p></li><li><p>关闭所有文件描述符后自动销毁</p></li><li><p>fd[0]读端，fd[1]写端</p></li><li><p>read返回0</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> fd[<span style=color:#ae81ff>2</span>];
+</span></span><span style=display:flex><span><span style=color:#75715e>// int pipe(int filedes[2]);
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span> (pipe(fd) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>) {
+</span></span><span style=display:flex><span>	perror(<span style=color:#e6db74>&#34;pipe&#34;</span>);
+</span></span><span style=display:flex><span>	exit(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>pid_t pid <span style=color:#f92672>=</span> fork();
+</span></span><span style=display:flex><span><span style=color:#75715e>// fork子进程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span>(pid <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>	close(fd[<span style=color:#ae81ff>0</span>]); <span style=color:#75715e>// 关闭读端
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	write(fd[<span style=color:#ae81ff>1</span>], str1, <span style=color:#66d9ef>sizeof</span>(str1));
+</span></span><span style=display:flex><span>}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>	close(fd[<span style=color:#ae81ff>1</span>]); <span style=color:#75715e>// 关闭写端
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	read(fd[<span style=color:#ae81ff>0</span>], line, MAXLINE);
+</span></span><span style=display:flex><span>	read(fd[<span style=color:#ae81ff>0</span>], buf, BUF_SIZE);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=命名管道fifo>命名管道FIFO
+<a class=header-anchor href=#%e5%91%bd%e5%90%8d%e7%ae%a1%e9%81%93fifo></a></h4><p>特点：</p><ol><li>可用于任何进程间通信，支持跨网络通信</li><li>不同于匿名管道，以FIFO的文件形式存储于<strong>文件系统</strong>中</li><li>基于磁盘上实际文件进行操作，进程退出后，管道依然存在</li><li>需要显式删除</li><li>可以使用文件的相关操作</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdio.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/types.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/stat.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(mkfifo(<span style=color:#e6db74>&#34;./mypipe&#34;</span>,<span style=color:#ae81ff>0666</span><span style=color:#f92672>|</span>S_IFIFO) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>){ <span style=color:#75715e>// 创建管道
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>		perror(<span style=color:#e6db74>&#34;mkfifo&#34;</span>);
+</span></span><span style=display:flex><span>		exit(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>int</span> fd <span style=color:#f92672>=</span> open(<span style=color:#e6db74>&#34;./mypipe&#34;</span>,O_RDONLY);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(fd <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>        perror(<span style=color:#e6db74>&#34;open&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>2</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>	read(fd, buf, BUF_SIZE);
+</span></span><span style=display:flex><span>	close(fd);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>main</span>(){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>int</span> fd <span style=color:#f92672>=</span> open(<span style=color:#e6db74>&#34;./mypipe&#34;</span>,O_WRONLY);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(fd <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>        perror(<span style=color:#e6db74>&#34;open&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>2</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>	write(fd, str1, <span style=color:#66d9ef>sizeof</span>(str1));
+</span></span><span style=display:flex><span>	close(fd);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=共享内存>共享内存
+<a class=header-anchor href=#%e5%85%b1%e4%ba%ab%e5%86%85%e5%ad%98></a></h3><ul><li>原理：允许不相干的进程通过页表映射将<strong>同一段物理内存</strong>连接到它们各自的地址空间中</li><li>访问无需借助内核<sup>（不需要系统调用）</sup>，不需要来回拷贝数据</li><li>需要用户进行同步与互斥</li></ul><p>使用：</p><ol><li><p>创建或获取共享内存</p><p>int shmget(key_t key, size_t size, int shmflg);</p><p>key：通过ftok获取，或者传入IPC_PRIVATE（用于<strong>有亲缘关系</strong>的进程间通信）由操作系统自动分配</p><p>size：共享内存的大小，以页为单位分配<sup>（Linux系统中一页大小是4KB=4096B，小于4096B则分配一页，size传入4097则分配两页）</sup>，创建共享内存时size>0，访问已存在的共享内存时size = 0</p><p>shmflg：IPC_CREAT（create）、 IPC_EXCL（确保创建，如果共享缓冲区已存在，会调用失败）</p><pre><code>           0666|IPC_CREAT (推荐) 中 0 表示8进制数，666表示读写权限
+
+           IPC_CREAT|IPC_EXCL 确保会创建共享内存
+</code></pre></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/ipc.h&gt;</span><span style=color:#75715e> 
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/shm.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/types.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define PATHNAME &#34;.&#34;   
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PROJ_ID 0x6666
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>key_t key <span style=color:#f92672>=</span> ftok(PATHNAME,PROJ_ID);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(key <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;ftok error</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> shmid <span style=color:#f92672>=</span> shmget(key, <span style=color:#66d9ef>sizeof</span>(UserData), <span style=color:#ae81ff>0666</span><span style=color:#f92672>|</span>IPC_CREAT);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(shmid <span style=color:#f92672>==</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>){
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;shmget errno is: %s</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>,strerror(errno));
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ol start=2><li><p>连接共享内存</p><p>每个进程都需要 shmat，即使是创建共享内存的进程</p><p>每次调用 shmat 都需要先调用 shmget 函数</p><p>void *shmat(int shmid, const void *shmaddr, int shmflg);</p><p>shmid：共享存储区的标识</p><p>shmaddr：共享存储区的开始地址，设置为NULL<sup>(交给操作系统去做)</sup></p><p>shmflg：当前进程的读写权限，如 SEM_RDONLY，默认0为读写均可</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>ShmStruct<span style=color:#f92672>*</span> addr<span style=color:#f92672>=</span>(ShmStruct<span style=color:#f92672>*</span>)shmat(shmid,NULL,<span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(addr<span style=color:#f92672>==</span> (<span style=color:#66d9ef>void</span><span style=color:#f92672>*</span>)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>){
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;shmat errno is: %s</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>,strerror(errno));
+</span></span><span style=display:flex><span>}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;Attach shared-memory: %p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>,addr);
+</span></span><span style=display:flex><span>	printf(<span style=color:#e6db74>&#34;Attach shared memory status:</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>	system(<span style=color:#e6db74>&#34;ipcs -m&#34;</span>);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ol start=3><li><p>断开连接共享内存</p><p>int shmdt(const void *shmaddr);</p><p>shmaddr：共享存储区的开始地址</p></li><li><p>删除共享内存</p><p>int shmctl(int shmid, int cmd, struct shmid_ds *buf);</p><p>shmid：共享存储区的标识</p><p>cmd：IPC_RMID 删除</p><p>buf：设置NULL</p></li></ol><h3 id=消息队列>消息队列
+<a class=header-anchor href=#%e6%b6%88%e6%81%af%e9%98%9f%e5%88%97></a></h3><ul><li>本质：<strong>存放在内存中的消息链表</strong></li><li>可以实现消息的<strong>随机查询</strong>，如按消息类型读取</li><li>异步：写入消息时不需要其他​进程等待​消息到达<sup>（管道写进程需要读进程存在）</sup>；接收者必须<strong>轮询</strong>消息队列，才能收到最近的消息</li><li>需要将数据从内核态和用户态之间拷贝</li><li>无需同步与互斥，需要内核介入</li></ul><p>查看消息队列参考消息队列</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdio.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/types.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/ipc.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/msg.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#define PATHNAME &#34;.&#34;   
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define PROJ_ID 0x6666
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define MAX_SIZE 1024
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>key_t key <span style=color:#f92672>=</span> ftok(PATHNAME,PROJ_ID);
+</span></span><span style=display:flex><span><span style=color:#75715e># 返回消息队列标识符
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> msgid <span style=color:#f92672>=</span> msgget(key, IPC_CREAT <span style=color:#f92672>|</span> <span style=color:#ae81ff>0666</span>); <span style=color:#75715e>// 参考共享内存
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>msgbuf</span> buffer;
+</span></span><span style=display:flex><span>buffer.mtype <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>msgsnd(msgid, <span style=color:#f92672>&amp;</span>buffer, <span style=color:#66d9ef>sizeof</span>(buffer)<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>msgrcv(msgid, <span style=color:#f92672>&amp;</span>buffer, MAX_SIZE, <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>printf(<span style=color:#e6db74>&#34;%s</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, buffer.mtext);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 设置消息队列属性
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>msqid_ds</span> mqs;
+</span></span><span style=display:flex><span>memset(<span style=color:#f92672>&amp;</span>mqs, <span style=color:#ae81ff>0</span>, <span style=color:#66d9ef>sizeof</span>(mqs));
+</span></span><span style=display:flex><span>mqs.msg_perm.mode <span style=color:#f92672>=</span> <span style=color:#ae81ff>0444</span>;
+</span></span><span style=display:flex><span>msgctl(msgid, IPC_SET, <span style=color:#f92672>&amp;</span>mqs);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 获取消息队列状态
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>msgctl(msgid, IPC_STAT, <span style=color:#f92672>&amp;</span>mqs);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 删除消息队列
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>msgctl(msgid, IPC_RMID, NULL);
+</span></span></code></pre></div><h3 id=信号>信号
+<a class=header-anchor href=#%e4%bf%a1%e5%8f%b7></a></h3><p>原理：</p><ol><li>操作系统提供发送信号的系统调用</li><li>该系统调用会将信号放到目标进程的<code>信号队列</code>​中</li><li>进程可以阻塞<sup>（该信号的传递被延迟，直到其阻塞被取消时才被传递给进程）</sup>​某个信号；接收信号后可以忽略信号、处理信号<sup>（定义信号处理函数）</sup>、执行默认操作。</li></ol><ul><li>不可处理、忽略、捕捉的信号：SIGSTOP、SIGKILL</li><li>命令行使用kill发送信号</li></ul><table><thead><tr><th>信号</th><th>含义</th><th></th></tr></thead><tbody><tr><td>SIGABRT</td><td>程序的异常终止，如调用 abort</td><td></td></tr><tr><td>SIGALRM</td><td>闹钟函数</td><td></td></tr><tr><td>SIGCHLD</td><td>子进程终止</td><td></td></tr><tr><td>SIGFPE</td><td>错误的算术运算，如除以零或导致溢出的操作</td><td></td></tr><tr><td>SIGILL</td><td>检测非法指令</td><td></td></tr><tr><td>SIGINT</td><td>程序终止信号，如CTRL+C</td><td></td></tr><tr><td>SIGSTOP</td><td>程序停止信号，如CTRL+Z</td><td></td></tr><tr><td>SIGKILL</td><td>程序KILL信号，如CTRL+\ 或 kill -s SIGKILL pid</td><td>9</td></tr><tr><td>SIGSEGV</td><td>非法访问内存</td><td></td></tr><tr><td>SIGTERM</td><td>发送到程序的终止请求</td><td></td></tr></tbody></table><ol><li>发送信号</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;signal.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>kill</span>(pid_t pid, <span style=color:#66d9ef>int</span> signo);	<span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#960050;background-color:#1e0010>给指定进程发送信号</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> raise(<span style=color:#66d9ef>int</span> signo);  <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#960050;background-color:#1e0010>给当前进程发送信号</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdlib.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> abort(<span style=color:#66d9ef>void</span>); 
+</span></span><span style=display:flex><span><span style=color:#75715e># 发送SIGABRT信号，使程序异常终止
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> <span style=color:#a6e22e>alarm</span>(<span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> seconds);
+</span></span><span style=display:flex><span><span style=color:#75715e># 到达时间后发送SIGALRM信号
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 返回以前设定的闹钟时间还余下的秒数
+</span></span></span><span style=display:flex><span><span style=color:#75715e># seconds: 0表示取消以前定的闹钟;如果在seconds秒内再次调用了alarm函数设置了新的闹钟，则后面定时器的设置将覆盖前面的设置
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 如果未指定SIGALRM信号的处理函数，则通过调用signal函数终止进程。
+</span></span></span></code></pre></div><ol start=2><li><p>设置信号处理函数</p><p>signal函数在UNIX系列的不同OS中可能存在区别，但sigaction函数完全相同</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 声明
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> (<span style=color:#f92672>*</span>signal(<span style=color:#66d9ef>int</span> sig, <span style=color:#66d9ef>void</span> (<span style=color:#f92672>*</span>func)(<span style=color:#66d9ef>int</span>)))(<span style=color:#66d9ef>int</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sigaction</span>{
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>void</span> (<span style=color:#f92672>*</span>sa_handler)(<span style=color:#66d9ef>int</span>);
+</span></span><span style=display:flex><span>	sigset_t sa_mask; <span style=color:#75715e>// 初始化为0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>int</span> sa_flags; <span style=color:#75715e>// 初始化为0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>sigaction</span>(<span style=color:#66d9ef>int</span> sig, <span style=color:#66d9ef>const</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sigaction</span> <span style=color:#f92672>*</span>act, <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sigaction</span> <span style=color:#f92672>*</span>oldact);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 方式1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>signhandler</span>(<span style=color:#66d9ef>int</span> sig){}
+</span></span><span style=display:flex><span>	signal(SIGINT, sighandler);
+</span></span><span style=display:flex><span><span style=color:#75715e># 方式2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>sigaction</span> act;
+</span></span><span style=display:flex><span>	act.sa_handler <span style=color:#f92672>=</span> func;
+</span></span><span style=display:flex><span>	sigemptyset(<span style=color:#f92672>&amp;</span>act.sa_mask);
+</span></span><span style=display:flex><span>	act.sa_flags <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>	sigaction(SIGALRM, <span style=color:#f92672>&amp;</span>act, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>	alarm(<span style=color:#ae81ff>2</span>);
+</span></span></code></pre></div><h3 id=socket>Socket
+<a class=header-anchor href=#socket></a></h3><p>优点：</p><ul><li>可跨主机（伸缩性）</li><li>OS自动回收、程序重启后容易恢复、快速failover(OS关闭连接)</li><li>port独占防止程序重复启动</li><li>可记录、可重现（tcpdump和wireshark分析性能、解决争端）</li><li>压力测试（tcpcopy）</li><li>跨语言（服务器和客户端语言可不同）</li><li>任何一个进程可单独重启（TCP连接是可再生的，重建连接后可继续工作）</li></ul><p>缺点：</p><ul><li>会有marshal/unmarshal（序列化）的开销，需要选择合适的消息格式（wire format）,推荐google Protocol Buffers</li><li>可在TCP上构建RPC/HTTP/SOAP之类的上层通信协议，和应用级的广播协议（构建分布式系统）</li></ul><h2 id=进程相关函数>进程相关函数
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b%e7%9b%b8%e5%85%b3%e5%87%bd%e6%95%b0></a></h2><table><thead><tr><th>功能</th><th>函数</th></tr></thead><tbody><tr><td>进程ID</td><td>pid_t getpid()<sup>(&lt;unistd.h>)</sup></td></tr><tr><td><br></td><td><br></td></tr></tbody></table><h2 id=等待与分离>等待与分离
+<a class=header-anchor href=#%e7%ad%89%e5%be%85%e4%b8%8e%e5%88%86%e7%a6%bb></a></h2><h1 id=线程>线程
+<a class=header-anchor href=#%e7%ba%bf%e7%a8%8b></a></h1><h2 id=创建线程thread>创建线程thread
+<a class=header-anchor href=#%e5%88%9b%e5%bb%ba%e7%ba%bf%e7%a8%8bthread></a></h2><p>传入可调用对象、std::packaged_task（参考future获取异步结果）</p><p>传入参数：传值、传引用、传指针</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span>std<span style=color:#f92672>::</span>jthread  C<span style=color:#f92672>++</span><span style=color:#ae81ff>20</span><span style=color:#960050;background-color:#1e0010>支持自动</span>join的线程
+</span></span><span style=display:flex><span><span style=color:#75715e># 传入可调用对象
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> worker(DoWork, param1, param2);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 传入std::packaged_task
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>packaged_task<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span>(<span style=color:#66d9ef>int</span>)<span style=color:#f92672>&gt;</span> task([](<span style=color:#66d9ef>int</span> x) { <span style=color:#66d9ef>return</span> x <span style=color:#f92672>*</span> <span style=color:#ae81ff>3</span>; });
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> t(std<span style=color:#f92672>::</span>move(task), <span style=color:#ae81ff>5</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 传入成员函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>class_name item;
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> worker(<span style=color:#f92672>&amp;</span>class_name<span style=color:#f92672>::</span>func, <span style=color:#f92672>&amp;</span>item, param1); <span style=color:#75715e>// 传对象指针
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> worker(<span style=color:#f92672>&amp;</span>class_name<span style=color:#f92672>::</span>func, item, param1); <span style=color:#75715e>// 拷贝副本
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 传引用
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> worker(DoWork, std<span style=color:#f92672>::</span>ref(param1));
+</span></span></code></pre></div><h2 id=线程通信>线程通信
+<a class=header-anchor href=#%e7%ba%bf%e7%a8%8b%e9%80%9a%e4%bf%a1></a></h2><p>全局变量、传参（传值、传引用、传指针）</p><h3 id=队列>队列
+<a class=header-anchor href=#%e9%98%9f%e5%88%97></a></h3><p>库：Disruptor、concurrentqueue、MPMCQueue.h</p><h3 id=栈>栈
+<a class=header-anchor href=#%e6%a0%88></a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 基于CAS
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span> <span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>mt_stack</span> {
+</span></span><span style=display:flex><span> 	std<span style=color:#f92672>::</span>deque<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> s_;
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>int</span> cap_ <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  	<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>counts_t</span> {
+</span></span><span style=display:flex><span>    	<span style=color:#66d9ef>int</span> p_ <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#75715e>// 生产者索引，第一个空闲槽的索引
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    	<span style=color:#66d9ef>int</span> c_ <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; <span style=color:#75715e>// 使用者索引，最近一个完全构造的元素的索引
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    	<span style=color:#66d9ef>bool</span> <span style=color:#a6e22e>equal</span>(std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span>counts_t<span style=color:#f92672>&gt;&amp;</span> n) {
+</span></span><span style=display:flex><span>     		<span style=color:#66d9ef>if</span> (p_ <span style=color:#f92672>==</span> c_) <span style=color:#66d9ef>return</span> true;
+</span></span><span style=display:flex><span>     		<span style=color:#f92672>*</span><span style=color:#66d9ef>this</span> <span style=color:#f92672>=</span> n.load(std<span style=color:#f92672>::</span>memory_order_relaxed);
+</span></span><span style=display:flex><span>     		<span style=color:#66d9ef>return</span> false;
+</span></span><span style=display:flex><span>   		}
+</span></span><span style=display:flex><span> 	};
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>mutable</span> std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span>counts_t<span style=color:#f92672>&gt;</span> n_;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span> 	mt_stack(size_t n <span style=color:#f92672>=</span> <span style=color:#ae81ff>100000000</span>) <span style=color:#f92672>:</span> s_(n), cap_(n) { }
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>void</span> <span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>const</span> T<span style=color:#f92672>&amp;</span> v);
+</span></span><span style=display:flex><span> 	std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> pop();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>const</span> T<span style=color:#f92672>&amp;</span> v) {
+</span></span><span style=display:flex><span>  	counts_t n <span style=color:#f92672>=</span> n_.load(std<span style=color:#f92672>::</span>memory_order_relaxed);
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>if</span> (n.p_ <span style=color:#f92672>==</span> cap_) abort();
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>while</span> (<span style=color:#f92672>!</span>n.equal(n_) <span style=color:#f92672>||</span> 
+</span></span><span style=display:flex><span>   		<span style=color:#f92672>!</span>n_.compare_exchange_weak(n, {n.p_<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>, n.c_},
+</span></span><span style=display:flex><span>      		std<span style=color:#f92672>::</span>memory_order_acquire,
+</span></span><span style=display:flex><span>     		std<span style=color:#f92672>::</span>memory_order_relaxed)) {
+</span></span><span style=display:flex><span>   		<span style=color:#66d9ef>if</span>(n.p_ <span style=color:#f92672>==</span> cap_) { ...allocate more memory ...}
+</span></span><span style=display:flex><span> 	};
+</span></span><span style=display:flex><span> 	<span style=color:#f92672>++</span>n.p_;
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>new</span> (<span style=color:#f92672>&amp;</span>s_[n.p_]) T(v);
+</span></span><span style=display:flex><span> 	assert(n_.compapa_exchange_strong(n, {n.p_, n.c_ <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>},
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>memory_order_release, std<span style=color:#f92672>::</span>memory_order_relaxed));
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> pop() {
+</span></span><span style=display:flex><span> 	counts_t n <span style=color:#f92672>=</span> n_.load(std<span style=color:#f92672>::</span>memory_order_relaxed);
+</span></span><span style=display:flex><span> 	<span style=color:#66d9ef>if</span> (n.c_ <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span>(std<span style=color:#f92672>::</span>nullopt);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>while</span> (<span style=color:#f92672>!</span>n.equal(n_)) <span style=color:#f92672>||</span>
+</span></span><span style=display:flex><span>   		<span style=color:#f92672>!</span>n_.compare_exchange_weak(n, {n.p_, n.c_ <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>},
+</span></span><span style=display:flex><span>    		std<span style=color:#f92672>::</span>memory_order_acquire,
+</span></span><span style=display:flex><span>   			std<span style=color:#f92672>::</span>memory_order_relaxed) {
+</span></span><span style=display:flex><span> 		<span style=color:#66d9ef>if</span> (n.c_ <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>) <span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span>(std<span style=color:#f92672>::</span>nullopt);
+</span></span><span style=display:flex><span> 	};
+</span></span><span style=display:flex><span> 	<span style=color:#f92672>--</span>n.cc_;
+</span></span><span style=display:flex><span> 	std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> res(std<span style=color:#f92672>::</span>move(s_[n.p_]));
+</span></span><span style=display:flex><span> 	s_[n.pc_].<span style=color:#f92672>~</span>T();
+</span></span><span style=display:flex><span> 	assert(n_.compare_exchange_strong(n, {n.p_ <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>, n.c_},
+</span></span><span style=display:flex><span>	std<span style=color:#f92672>::</span>memory_order_release, std<span style=color:#f92672>::</span>memory_order_relaxed));
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> res;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 基于锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>template</span> <span style=color:#f92672>&lt;</span><span style=color:#66d9ef>typename</span> T<span style=color:#f92672>&gt;</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>mt_stack</span> {
+</span></span><span style=display:flex><span>	std<span style=color:#f92672>::</span>stack<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> s_;
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>mutable</span> std<span style=color:#f92672>::</span>shared_mutex l_;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> pop() {
+</span></span><span style=display:flex><span>	std<span style=color:#f92672>::</span>unique_lock g(l_);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(s_.empty()) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span>(std<span style=color:#f92672>::</span>nullopt);
+</span></span><span style=display:flex><span>	}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>		std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> res(std<span style=color:#f92672>::</span>move(s_.top()));
+</span></span><span style=display:flex><span>		s_.pop();
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> res;
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> top() <span style=color:#66d9ef>const</span> {
+</span></span><span style=display:flex><span>	std<span style=color:#f92672>::</span>shared_lock g(l_);
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>(s_.empty()) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span>(std<span style=color:#f92672>::</span>nullopt);
+</span></span><span style=display:flex><span>	}<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>		std<span style=color:#f92672>::</span>optional<span style=color:#f92672>&lt;</span>T<span style=color:#f92672>&gt;</span> res(std<span style=color:#f92672>::</span>move(s_.top()));
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>return</span> res;
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>push</span>(<span style=color:#66d9ef>const</span> T<span style=color:#f92672>&amp;</span> v){
+</span></span><span style=display:flex><span>	std<span style=color:#f92672>::</span>unique_lock g(l_);
+</span></span><span style=display:flex><span>	s_.push(v);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=线程相关函数>线程相关函数
+<a class=header-anchor href=#%e7%ba%bf%e7%a8%8b%e7%9b%b8%e5%85%b3%e5%87%bd%e6%95%b0></a></h2><table><thead><tr><th>功能</th><th>函数</th></tr></thead><tbody><tr><td>线程ID</td><td>std:&#x1f9f5;:id std::this_thread::get_id()</td></tr><tr><td>TLS线程本地存储</td><td>__thread<br>__declspec(thread)<sup>(Microsoft使用)</sup><br>thread_local<sup>(变量的生命周期延长为整个线程)</sup><br></td></tr></tbody></table><h2 id=等待与分离-1>等待与分离
+<a class=header-anchor href=#%e7%ad%89%e5%be%85%e4%b8%8e%e5%88%86%e7%a6%bb-1></a></h2><p>每个子线程都需要且只能调用一次join()或detach()</p><p>分离子线程需要确保其访问的数据<sup>（变量的引用不会随主线程的退出而失效,如引用参数）</sup>是有效的</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> t(do_background_work);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>( worker.joinable() ){
+</span></span><span style=display:flex><span>	<span style=color:#75715e># 主线程等待子线程t完成
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	t.join();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>( worker.joinable() ){
+</span></span><span style=display:flex><span>	<span style=color:#75715e># 分离子线程,子线程在后台运行,被C++运行时库接管
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	t.detach();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 等待线程组的每个线程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> thr : threads_)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>	thr<span style=color:#f92672>-&gt;</span>join();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=异步async>异步async
+<a class=header-anchor href=#%e5%bc%82%e6%ad%a5async></a></h2><ul><li>创建线程的新方式，传参参考创建线程thread</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;future&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span>string<span style=color:#f92672>&gt;</span> answer <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>async(hello,(string)<span style=color:#e6db74>&#34;hello&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#75715e># 立刻执行线程
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span>string<span style=color:#f92672>&gt;</span> answer <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>async(std<span style=color:#f92672>::</span>launch<span style=color:#f92672>::</span>async, hello);
+</span></span><span style=display:flex><span><span style=color:#75715e># 延迟执行线程(直到调用wait或get,注意wait_for不可以)
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span>string<span style=color:#f92672>&gt;</span> answer <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>async(std<span style=color:#f92672>::</span>launch<span style=color:#f92672>::</span>deferred, hello);
+</span></span></code></pre></div><h2 id=线程池>线程池
+<a class=header-anchor href=#%e7%ba%bf%e7%a8%8b%e6%b1%a0></a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#pragma once
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;vector&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;mutex&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;condition_variable&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;functional&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;deque&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;thread&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ThreadPool</span> {
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>typedef</span> std<span style=color:#f92672>::</span>function<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>void</span> ()<span style=color:#f92672>&gt;</span> Task;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    ThreadPool();
+</span></span><span style=display:flex><span>    <span style=color:#f92672>~</span>ThreadPool();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>setMaxQueueSize</span>(<span style=color:#66d9ef>int</span> maxSize) { maxQueueSize_ <span style=color:#f92672>=</span> maxSize; }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>setThreadInitCallback</span>(<span style=color:#66d9ef>const</span> Task<span style=color:#f92672>&amp;</span> cb)
+</span></span><span style=display:flex><span>    { threadInitCallback_ <span style=color:#f92672>=</span> cb; }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>start</span>(<span style=color:#66d9ef>int</span> numThreads);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>stop</span>();
+</span></span><span style=display:flex><span>    size_t <span style=color:#a6e22e>queueSize</span>() <span style=color:#66d9ef>const</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>run</span>(Task task);  <span style=color:#75715e>// 传入任务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> isFull() <span style=color:#66d9ef>const</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>runInThread</span>();  <span style=color:#75715e>// 线程主循环函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    Task <span style=color:#a6e22e>take</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mutable</span> std<span style=color:#f92672>::</span>mutex mutex_;
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>condition_variable notEmpty_ ;
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>condition_variable notFull_ ;
+</span></span><span style=display:flex><span>    Task threadInitCallback_;
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span><span style=color:#f92672>&gt;&gt;</span> threads_; <span style=color:#75715e>// 线程组
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>deque<span style=color:#f92672>&lt;</span>Task<span style=color:#f92672>&gt;</span> queue_; <span style=color:#75715e>// 任务队列
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    size_t maxQueueSize_;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>bool</span> running_;
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;cassert&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>ThreadPool<span style=color:#f92672>::</span>ThreadPool()
+</span></span><span style=display:flex><span>    <span style=color:#f92672>:</span> maxQueueSize_(<span style=color:#ae81ff>0</span>),
+</span></span><span style=display:flex><span>      running_(false)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>ThreadPool<span style=color:#f92672>::~</span>ThreadPool()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (running_)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        stop();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> ThreadPool<span style=color:#f92672>::</span>start(<span style=color:#66d9ef>int</span> numThreads)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    assert(threads_.empty());
+</span></span><span style=display:flex><span>    running_ <span style=color:#f92672>=</span> true;
+</span></span><span style=display:flex><span>    threads_.reserve(numThreads);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>; i <span style=color:#f92672>&lt;</span> numThreads; <span style=color:#f92672>++</span>i)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        threads_.emplace_back(<span style=color:#66d9ef>new</span> std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span>(std<span style=color:#f92672>::</span>bind(<span style=color:#f92672>&amp;</span>ThreadPool<span style=color:#f92672>::</span>runInThread, <span style=color:#66d9ef>this</span>)));
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (numThreads <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> threadInitCallback_)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        threadInitCallback_();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> ThreadPool<span style=color:#f92672>::</span>stop()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 停止时可能有任务没有完成
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock(mutex_);
+</span></span><span style=display:flex><span>        running_ <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span>        notEmpty_.notify_all();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> <span style=color:#66d9ef>thread</span> <span style=color:#f92672>:</span> threads_)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>thread</span><span style=color:#f92672>-&gt;</span>join();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>size_t ThreadPool<span style=color:#f92672>::</span>queueSize() <span style=color:#66d9ef>const</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock(mutex_);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> queue_.size();
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> ThreadPool<span style=color:#f92672>::</span>run(Task task){ <span style=color:#75715e>// 传入任务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>if</span>(threads_.empty()){
+</span></span><span style=display:flex><span>        task(); <span style=color:#75715e>// 主线程完成任务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }<span style=color:#66d9ef>else</span>{
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock(mutex_);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span>(isFull()){
+</span></span><span style=display:flex><span>            notFull_.wait(lock);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        assert(<span style=color:#f92672>!</span>isFull());
+</span></span><span style=display:flex><span>        queue_.push_back(std<span style=color:#f92672>::</span>move(task));
+</span></span><span style=display:flex><span>        notEmpty_.notify_one();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>ThreadPool<span style=color:#f92672>::</span>Task ThreadPool<span style=color:#f92672>::</span>take(){ <span style=color:#75715e>// 获取任务
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock(mutex_);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span>(queue_.empty() <span style=color:#f92672>&amp;&amp;</span> running_){
+</span></span><span style=display:flex><span>        notEmpty_.wait(lock);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    Task task;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span>(<span style=color:#f92672>!</span>queue_.empty()){
+</span></span><span style=display:flex><span>        task <span style=color:#f92672>=</span> queue_.front();
+</span></span><span style=display:flex><span>        queue_.pop_front();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span>(maxQueueSize_ <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span>){
+</span></span><span style=display:flex><span>            notFull_.notify_one();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> task;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>bool</span> ThreadPool<span style=color:#f92672>::</span>isFull() <span style=color:#66d9ef>const</span>{
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> maxQueueSize_ <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> queue_.size() <span style=color:#f92672>&gt;=</span> maxQueueSize_;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> ThreadPool<span style=color:#f92672>::</span>runInThread(){ <span style=color:#75715e>// 线程主循环函数
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>try</span>{
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span>(threadInitCallback_){
+</span></span><span style=display:flex><span>            threadInitCallback_();
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>while</span>(running_){
+</span></span><span style=display:flex><span>            Task <span style=color:#a6e22e>task</span>(take());
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span>(task){
+</span></span><span style=display:flex><span>                task();
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }<span style=color:#66d9ef>catch</span>(<span style=color:#66d9ef>const</span> std<span style=color:#f92672>::</span>exception<span style=color:#f92672>&amp;</span> ex){
+</span></span><span style=display:flex><span>        fprintf(stderr, <span style=color:#e6db74>&#34;reason: %s</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, ex.what());
+</span></span><span style=display:flex><span>        exit(<span style=color:#ae81ff>1</span>);
+</span></span><span style=display:flex><span>    }<span style=color:#66d9ef>catch</span>(...){
+</span></span><span style=display:flex><span>        fprintf(stderr, <span style=color:#e6db74>&#34;unknown error</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>throw</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=线程数量阻抗匹配原则>线程数量（阻抗匹配原则）
+<a class=header-anchor href=#%e7%ba%bf%e7%a8%8b%e6%95%b0%e9%87%8f%e9%98%bb%e6%8a%97%e5%8c%b9%e9%85%8d%e5%8e%9f%e5%88%99></a></h3><ol><li>密集计算所占事件比重为P（0~1），系统有C个CPU，线程池大小T=C/P（可上下浮动50%）</li><li>如果P&lt;0.2，则T可以取固定值，如5*C，C可以为“<strong>分配给这项任务的CPU数目</strong>”</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 获取硬件支持的并发线程数，如果系统信息无法获取，返回0
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> in <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span><span style=color:#f92672>::</span>hardware_concurrency();
+</span></span></code></pre></div><h1 id=同步与互斥>同步与互斥
+<a class=header-anchor href=#%e5%90%8c%e6%ad%a5%e4%b8%8e%e4%ba%92%e6%96%a5></a></h1><p>特点：</p><ul><li><strong>进程</strong>实现同步与互斥需要使用<strong>共享内存</strong> 或 <strong>文件系统</strong></li></ul><table><thead><tr><th>同步方式</th><th>优先级翻转</th><th></th></tr></thead><tbody><tr><td>信号量</td><td>√</td><td></td></tr><tr><td>锁</td><td>×</td><td></td></tr><tr><td>原子操作</td><td></td><td>仅用于单个变量</td></tr></tbody></table><h2 id=信号量>信号量
+<a class=header-anchor href=#%e4%bf%a1%e5%8f%b7%e9%87%8f></a></h2><ul><li><p>本质：低级通信，传输信号量</p></li><li><p>信号量大于 0 时表示当前可用资源的数量；小于 0 时表示等待使用该资源的进程个数</p></li><li><p>P操作：<strong>申请资源</strong></p><p>将信号量S的值减1，即S=S-1；</p><p>如果S>=0，则该进程继续执行；</p><p>否则该进程置为等待状态，排入等待队列。</p></li><li><p>V操作：释放资源</p><p>将信号量S的值加1，即S=S+1；</p><p>如果S&lt;=0，则从等待队列中唤醒1个进程</p></li><li><p>函数为原子操作</p></li><li><p>原理：硬件提供的原子指令，如CAS（Compare And Swap）</p></li></ul><h3 id=基于内存的信号量>基于内存的信号量
+<a class=header-anchor href=#%e5%9f%ba%e4%ba%8e%e5%86%85%e5%ad%98%e7%9a%84%e4%bf%a1%e5%8f%b7%e9%87%8f></a></h3><ol><li><p>创建基于<strong>内存的信号量</strong></p><p>只能调用一次sem_init</p><p>int sem_init(sem_t *sem, int pshared, unsigned int value);</p><p>pshared：0为只在当前进程的所有线程中共享，非0为进程间共享（sem需要在共享内存中）</p><p>value：信号量初始值</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;semaphore.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>sem_t bin_sem;
+</span></span><span style=display:flex><span>sem_init(<span style=color:#f92672>&amp;</span>bin_sem, <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>1</span>);
+</span></span></code></pre></div><ol start=2><li><p>增加信号量，即释放资源</p><p>int sem_post(sem_t *sem);</p></li><li><p>减少信号量，即申请资源</p><p>int sem_wait(sem_t *sem);</p><p>int sem_trywait(sem_t *sem); 非阻塞</p></li><li><p>销毁信号量</p><p>int sem_destroy(sem_t *sem);</p></li></ol><h3 id=有名信号量>有名信号量
+<a class=header-anchor href=#%e6%9c%89%e5%90%8d%e4%bf%a1%e5%8f%b7%e9%87%8f></a></h3><ol><li><p>创建或打开有名信号量</p><p>有名信号量总能在进程间共享</p><p>sem_t *sem_open(const char *name, int oflag);</p><p>sem_t *sem_open(const char *name, int oflag,mode_t mode, unsigned int value);</p><p>name：与信号量关联的文件名</p><p>oflag：0（打开已创建的）、O_CREAT、O_CREAT|O_EXCL（如果没有指定的信号量就创建）</p><p>mode：权限位</p><p>val：信号量初始值</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;fcntl.h&gt;</span><span style=color:#75715e>        
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/stat.h&gt;</span><span style=color:#75715e>      
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;semaphore.h&gt;</span><span style=color:#75715e>
+</span></span></span></code></pre></div><ol start=2><li><p>增加信号量，即释放资源</p></li><li><p>减少信号量，即申请资源</p></li><li><p>关闭信号量</p><p>int sem_close(sem_t *sem);</p></li><li><p>销毁信号量</p><p>int sem_unlink(const char *name);</p></li></ol><h2 id=锁>锁
+<a class=header-anchor href=#%e9%94%81></a></h2><ul><li><p>优点：互斥锁解决了**优先级翻转<sup>（高优先级任务等待低优先级任务的锁时，中优先级任务抢占了低优先级任务的执行）</sup>**问题：优先级继承<sup>（高优先级的任务等待低优先级任务的锁时，低优先级继承高优先级，直到释放锁后还原其优先级）</sup></p><p><a href=https://www.cnblogs.com/codescrew/p/8970514.html title="二值信号量和互斥锁到底有什么区别？ - 代码螺丝钉 - 博客园 (cnblogs.com)" rel="noopener external nofollow noreferrer" target=_blank class=exturl>二值信号量和互斥锁到底有什么区别？ - 代码螺丝钉 - 博客园 (cnblogs.com)
+<i class="fa fa-external-link-alt"></i></a></p></li><li><p>缺点：</p><ul><li><p>死锁</p></li><li><p><strong>活锁</strong>：</p><p>多线程互相谦让。</p><p>解决：引入随机等待时长，增加重试次数</p></li><li><p><strong>锁护送</strong>：当多个相同优先级的线程频繁地争抢同一个锁。</p><p>导致线程频繁切换、调度粒度变小、分配的时间片大小不同。</p><p>解决：在每个线程获取锁的时候先尝试（try），如果尝试多次仍不成功，再阻塞。</p></li></ul></li><li><p>数据库中的锁：</p><ul><li><p>可能需要先获取常规锁，在实际访问对应页面时，获取LWLock</p></li><li><p>LWLock轻量级读写锁，只用于对共享内存变量的互斥访问，如Buffer（Clog Buffer、Shared Buffer、wal buffer）。</p><p>等锁使用信号量、等待队列、原子操作实现。</p></li><li><p>常规锁<sup>（https://blog.csdn.net/qq_43687755/article/details/106478057）</sup>具有锁协议（对应隔离级别）、锁的粒度、锁兼容矩阵。</p><p>等锁使用epoll实现。</p></li></ul></li><li><p>锁通常需要设置为<strong>mutable</strong></p></li></ul><h3 id=互斥锁mutex>互斥锁mutex
+<a class=header-anchor href=#%e4%ba%92%e6%96%a5%e9%94%81mutex></a></h3><ul><li>通过 优先级继承 解决了 优先级翻转 问题</li><li>如果函数返回保护数据的指针或引用，会破坏数据</li><li>在 <strong>const函数</strong> 中使用时，需要用 <strong>mutable</strong> 修饰锁</li><li><strong>缺点</strong>：系统调用、线程重新调度、上下文切换开销大</li></ul><table><thead><tr><th>锁定方式</th><th>含义</th><th>备注</th></tr></thead><tbody><tr><td>lock()/unlock()</td><td></td><td>所有分支路径都要unlock()</td></tr><tr><td>lock_guard</td><td>创建加锁，离开作用域后自动解锁<br>不可移动，不可复制</td><td>C++11，使用 <strong>{ }</strong> 限定作用域，达到提前解锁</td></tr><tr><td>unique_lock</td><td>允许中途解锁，可以移动，不可复制<br>支持延迟锁定，支持锁的所有权转移<sup>（可以从函数中返回）</sup><br>支持限时尝试锁定、超时锁定</td><td>C++11</td></tr><tr><td>scoped_lock</td><td>锁定多个互斥量<sup>（也可以使用std::lock，参考加多个锁）</sup></td><td>C++17</td></tr></tbody></table><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;mutex&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>mutex mtx;
+</span></span><span style=display:flex><span>mtx.lock();
+</span></span><span style=display:flex><span>mtx.unlock();
+</span></span><span style=display:flex><span>mtx.try_lock();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>lock_guard<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard(mtx);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>lock_guard<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard(mtx, std<span style=color:#f92672>::</span>adopt_lock);
+</span></span><span style=display:flex><span><span style=color:#75715e># std::adopt_lock : mutex已经加锁，即领养锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e># std::try_to_lock：if(guard.owns_lock()) 即使不能获得锁，也会立刻返回，不会阻塞
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard(mtx);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>mutex <span style=color:#f92672>*</span>ptx <span style=color:#f92672>=</span> guard.release();
+</span></span><span style=display:flex><span><span style=color:#75715e># 释放锁，返回管理的mutex对象指针
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard2(std<span style=color:#f92672>::</span>move(guard))
+</span></span><span style=display:flex><span><span style=color:#75715e># 可以移动move
+</span></span></span></code></pre></div><h4 id=尝试锁定延迟锁定>尝试锁定（+延迟锁定）
+<a class=header-anchor href=#%e5%b0%9d%e8%af%95%e9%94%81%e5%ae%9a%e5%bb%b6%e8%bf%9f%e9%94%81%e5%ae%9a></a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard(mtx, std<span style=color:#f92672>::</span>defer_lock);
+</span></span><span style=display:flex><span><span style=color:#75715e>// std::defer_lock ：初始化一个不加锁的mutex，如果mutex已经加锁，会抛异常
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e># 尝试锁定（不阻塞）
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span>(<span style=color:#f92672>!</span>guard.try_lock()){<span style=color:#66d9ef>return</span> ;}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 尝试200ms后返回
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>while</span> (<span style=color:#f92672>!</span>guard.try_lock_for(std<span style=color:#f92672>::</span>chrono<span style=color:#f92672>::</span>milliseconds(<span style=color:#ae81ff>200</span>))) {
+</span></span><span style=display:flex><span>	...
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 尝试加锁直到某个时间点
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>try_lock_until()
+</span></span></code></pre></div><h4 id=加多个锁>加多个锁
+<a class=header-anchor href=#%e5%8a%a0%e5%a4%9a%e4%b8%aa%e9%94%81></a></h4><ol><li>使用lock，再分别使用lock_guard + std::adopt_lock</li><li>使用unique_guard + std::defer_lock，再使用lock</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>std<span style=color:#f92672>::</span>lock(mutex1,mutex2,....)
+</span></span><span style=display:flex><span><span style=color:#75715e># 如果其中一个加锁失败，会将其他的锁释放
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>lock_guard<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard1(mutex1, std<span style=color:#f92672>::</span>adopt_lock);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>lock_guard<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard2(mutex2, std<span style=color:#f92672>::</span>adopt_lock);
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>或</span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock1(from.m, std<span style=color:#f92672>::</span>defer_lock);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> lock2(to.m, std<span style=color:#f92672>::</span>defer_lock);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>lock(lock1, lock2);
+</span></span></code></pre></div><h3 id=读写锁>读写锁
+<a class=header-anchor href=#%e8%af%bb%e5%86%99%e9%94%81></a></h3><p>特点：</p><ul><li>使用 <strong>shared_mutex、shared_timed_mutex</strong></li><li>Boost库提供 upgrade_lock 升级锁，STL未提供</li><li>获取写锁时，可能不小心调用会修改状态的函数</li><li>需要更新当前reader的数目，影响性能</li><li>在 <strong>const函数</strong> 中使用时，需要用 <strong>mutable</strong> 修饰锁</li><li>C++14支持</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;shared_mutex&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>mutable</span> std<span style=color:#f92672>::</span>shared_mutex l_;
+</span></span><span style=display:flex><span>l_.lock();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(l_.try_lock())
+</span></span><span style=display:flex><span>l_.unlock()
+</span></span><span style=display:flex><span><span style=color:#75715e># 申请和释放写锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>l_.lock_shared();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(l_.try_lock_shared())
+</span></span><span style=display:flex><span>l_.unlock_shared();
+</span></span><span style=display:flex><span><span style=color:#75715e># 申请和释放读锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>shared_mutex<span style=color:#f92672>&gt;</span> g(l_);
+</span></span><span style=display:flex><span><span style=color:#75715e># 申请写锁（排他锁）
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>shared_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>shared_mutex<span style=color:#f92672>&gt;</span> g(l_);
+</span></span><span style=display:flex><span><span style=color:#75715e># 申请读锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_init</span>(pthread_rwlock_t <span style=color:#f92672>*</span><span style=color:#66d9ef>restrict</span> rwlock, <span style=color:#66d9ef>const</span> 
+</span></span><span style=display:flex><span>pthread_rwlockattr_t <span style=color:#f92672>*</span><span style=color:#66d9ef>restrict</span> attr);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_rdlock</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock); 
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_wrlock</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock); 
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_unlock</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock); 
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_tryrdlock</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock); 
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_trywrlock</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>pthread_rwlock_destroy</span>(pthread_rwlock_t <span style=color:#f92672>*</span>rwlock);
+</span></span></code></pre></div><h3 id=自旋锁>自旋锁
+<a class=header-anchor href=#%e8%87%aa%e6%97%8b%e9%94%81></a></h3><ul><li>轮询忙等待，消耗CPU</li><li>场景：加锁时间非常短（几个周期）</li><li>优点：避免OS重新调度、上下文切换的开销</li><li>持有时间过长可能触发内核core dump</li><li>自旋锁在单核CPU<sup>(占有资源的进程无法得到CPU，因此无法释放锁)</sup>下不起作用</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Spinlock</span> {
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> lock(){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span>(<span style=color:#66d9ef>int</span> i<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>; flag_.load(std<span style=color:#f92672>::</span>memory_order_relaxed) <span style=color:#f92672>||</span>
+</span></span><span style=display:flex><span>            flag_.exchange(<span style=color:#ae81ff>1</span>, std<span style=color:#f92672>::</span>memory_order_acquire); <span style=color:#f92672>++</span>i){
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span>( i<span style=color:#f92672>==</span><span style=color:#ae81ff>8</span> ){
+</span></span><span style=display:flex><span>                lock_sleep();
+</span></span><span style=display:flex><span>                i<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>unlock</span>(){
+</span></span><span style=display:flex><span>        flag_.store( <span style=color:#ae81ff>0</span>, std<span style=color:#f92672>::</span>memory_order_acquire );
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>lock_sleep</span>(){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>static</span> <span style=color:#66d9ef>const</span> timespec ns <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>1</span>};
+</span></span><span style=display:flex><span>        nanosleep(<span style=color:#f92672>&amp;</span>ns, NULL);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    Spinlock() <span style=color:#f92672>=</span> <span style=color:#66d9ef>default</span>;
+</span></span><span style=display:flex><span>    Spinlock(<span style=color:#66d9ef>const</span> Spinlock<span style=color:#f92672>&amp;</span> other) <span style=color:#f92672>=</span> <span style=color:#66d9ef>delete</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span> flag_;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=超时锁>超时锁
+<a class=header-anchor href=#%e8%b6%85%e6%97%b6%e9%94%81></a></h3><ul><li>可以使用<strong>unique_lock 或 timed_mutex</strong>、shared_timed_mutex、recursive_timed_mutex</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>std<span style=color:#f92672>::</span>timed_mutex mtx;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>( mtx.try_lock_for(std<span style=color:#f92672>::</span>chrono<span style=color:#f92672>::</span>milliseconds(<span style=color:#ae81ff>2000</span>)) )
+</span></span><span style=display:flex><span>	mtx.unlock()
+</span></span><span style=display:flex><span><span style=color:#f92672>-----</span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>unique_lock<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>mutex<span style=color:#f92672>&gt;</span> guard(mtx, std<span style=color:#f92672>::</span>defer_lock);
+</span></span><span style=display:flex><span><span style=color:#75715e>// std::defer_lock ：初始化一个不加锁的mutex，如果mutex已经加锁，会抛异常
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e># 尝试锁定（不阻塞）
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span>(<span style=color:#f92672>!</span>guard.try_lock()){<span style=color:#66d9ef>return</span> ;}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 尝试200ms后返回
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>while</span> (<span style=color:#f92672>!</span>guard.try_lock_for(std<span style=color:#f92672>::</span>chrono<span style=color:#f92672>::</span>milliseconds(<span style=color:#ae81ff>200</span>))) {
+</span></span><span style=display:flex><span>	...
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 尝试加锁直到某个时间点
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>try_lock_until()
+</span></span></code></pre></div><h3 id=可重入锁>可重入锁
+<a class=header-anchor href=#%e5%8f%af%e9%87%8d%e5%85%a5%e9%94%81></a></h3><ul><li>允许同一线程多次获取同一个锁</li><li>可使用 <strong>recursive_mutex</strong>、recursive_timed_mutex</li><li>场景：自调用函数、递归函数</li></ul><h3 id=文件锁>文件锁
+<a class=header-anchor href=#%e6%96%87%e4%bb%b6%e9%94%81></a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;fcntl.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> file <span style=color:#f92672>=</span> open(<span style=color:#e6db74>&#34;example.txt&#34;</span>, O_RDWR);
+</span></span><span style=display:flex><span><span style=color:#75715e># 获取文件锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>flock</span> fl;
+</span></span><span style=display:flex><span>fl.l_type <span style=color:#f92672>=</span> F_WRLCK;  <span style=color:#75715e>// 写锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>fl.l_whence <span style=color:#f92672>=</span> SEEK_SET;
+</span></span><span style=display:flex><span>fl.l_start <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>fl.l_len <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>fl.l_pid <span style=color:#f92672>=</span> getpid();
+</span></span><span style=display:flex><span>fcntl(file, F_SETLKW, <span style=color:#f92672>&amp;</span>fl);  <span style=color:#75715e>// 阻塞获取文件锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 释放文件锁
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>fl.l_type <span style=color:#f92672>=</span> F_UNLCK;
+</span></span><span style=display:flex><span>fcntl(file, F_SETLK, <span style=color:#f92672>&amp;</span>fl);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>close(file);
+</span></span></code></pre></div><h2 id=原子操作>原子操作
+<a class=header-anchor href=#%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c></a></h2><ul><li>优点：解决了死锁、活锁、锁护送</li><li>缺点：仅用于单个变量</li><li>需要<strong>所有线程</strong>都使用原子操作访问</li><li>原子操作是申请对<strong>整个缓存行</strong>的独占访问权限</li><li>原子变量不能移动或拷贝</li></ul><h3 id=创建>创建
+<a class=header-anchor href=#%e5%88%9b%e5%bb%ba></a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#inlcude &lt;atomic&gt;
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int32_t</span><span style=color:#f92672>&gt;</span> atm <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>bool</span><span style=color:#f92672>&gt;</span>    atm{ false };
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span>     atm(<span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>long</span><span style=color:#f92672>&gt;</span> atm[<span style=color:#ae81ff>1024</span>];
+</span></span></code></pre></div><table><thead><tr><th>原子变量类型</th><th>含义</th></tr></thead><tbody><tr><td>atomic_bool</td><td>bool布尔型</td></tr><tr><td>atomic_char</td><td>char字符型</td></tr><tr><td>atomic_uchar</td><td>unsigned char</td></tr><tr><td>atomic_schar</td><td>signed char</td></tr><tr><td>atomic_short</td><td>short</td></tr><tr><td>atomic_ushort</td><td>unsigned short</td></tr><tr><td>atomic_int</td><td>int</td></tr><tr><td>atomic_uint</td><td>unsigned int</td></tr><tr><td>atomic_long</td><td>long</td></tr><tr><td>atomic_ulong</td><td>unsigned long</td></tr><tr><td>atomic_llong</td><td>long long</td></tr><tr><td>atomic_ullong</td><td>unsigned long long</td></tr><tr><td>atomic_wchar_t</td><td>wchar_t</td></tr><tr><td>atomic_char16_t</td><td>char16_t</td></tr><tr><td>atomic_char32_t</td><td>char32_t</td></tr><tr><td>atomic_intmax_t</td><td>intmax_t<sup>(&lt;inttypes.h>)</sup></td></tr><tr><td>atomic_uintmax_t</td><td>uintmax_t<sup>(&lt;inttypes.h>)</sup></td></tr><tr><td>atomic_intptr_t</td><td>intptr_t <sup>(&lt;stddef.h>)</sup> 指针宽度整数</td></tr><tr><td>atomic_uintptr_t</td><td>uintptr_t<sup>(&lt;stddef.h>)</sup> 指针宽度无符号整数</td></tr><tr><td>atomic_size_t</td><td>size_t</td></tr><tr><td>atomic_ptrdiff_t</td><td>ptrdiff_t 两个指针的距离</td></tr></tbody></table><h3 id=成员函数>成员函数
+<a class=header-anchor href=#%e6%88%90%e5%91%98%e5%87%bd%e6%95%b0></a></h3><p>除store()，均返回操作前的值</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>a.store(true)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> b<span style=color:#f92672>=</span>a.load()
+</span></span></code></pre></div><table><thead><tr><th>函数</th><th>功能</th></tr></thead><tbody><tr><td>load()</td><td>读取</td></tr><tr><td>store()</td><td>写入，无返回值</td></tr><tr><td>exchange()</td><td>写入</td></tr><tr><td>fetch_add()</td><td>+</td></tr><tr><td>fetch_sub()</td><td>-</td></tr><tr><td>fetch_and()</td><td>按位与</td></tr><tr><td>fetch_or()</td><td>按位或</td></tr><tr><td>fetch_xor()</td><td>按位异或</td></tr><tr><td>fetch_min()</td><td>将原子变量和给定值的较小值存入原子变量</td></tr><tr><td>fetch_max()</td><td>将原子变量和给定值的较大值存入原子变量</td></tr><tr><td>fetch_mul()</td><td>*</td></tr><tr><td>fetch_div()</td><td>/</td></tr><tr><td>fetch_and_not()</td><td>按位与非</td></tr><tr><td>fetch_negate()</td><td>取反</td></tr></tbody></table><p>​<img src=/imgs/img-lazy-loading.gif data-src=https://raw.githubusercontent.com/arukasxy/notes/main/content/post/image-viewer/image-20240725140956-wg9y6dn.png alt=image>​</p><h3 id=cas比较-and-交换>CAS（比较 And 交换）
+<a class=header-anchor href=#cas%e6%af%94%e8%be%83-and-%e4%ba%a4%e6%8d%a2></a></h3><ol><li>读取变量的当前值</li><li>检查必要条件，如果条件失败，则执行特定操作</li><li>如果当前值仍然等于之前读取的值，则以原子方式将值替换为所需的结果</li><li>如果步骤3失败，则当前值已经更新，再次检查，重复步骤3、4</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 即使当前值和预期值匹配，weak版本有时候也会返回false
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>bool</span> <span style=color:#a6e22e>compare_exchange_weak</span> (T<span style=color:#f92672>&amp;</span> expected, T val)
+</span></span><span style=display:flex><span><span style=color:#75715e># 对于非循环算法，首选compare_exchange_strong，否则为compare_exchange_weak + 循环
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>bool</span> compare_exchange_strong (T<span style=color:#f92672>&amp;</span> expected, T val)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>atomic_bool isRunning <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>bool</span> expected <span style=color:#f92672>=</span> false;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>if</span>(<span style=color:#f92672>!</span>isRunning.compare_exchange_weak(expected, true)){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>return</span> ;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=有界原子操作>有界原子操作
+<a class=header-anchor href=#%e6%9c%89%e7%95%8c%e5%8e%9f%e5%ad%90%e6%93%8d%e4%bd%9c></a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e># 有界原子递增操作
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span> n_ <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>bounded_fetch_add</span>(<span style=color:#66d9ef>int</span> dn, <span style=color:#66d9ef>int</span> maxn) {
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>int</span> n <span style=color:#f92672>=</span> n_load(std<span style=color:#f92672>::</span>memory_order_relaxed); <span style=color:#75715e>// 1
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>do</span> {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>if</span>( n<span style=color:#f92672>+</span>dn <span style=color:#f92672>&gt;=</span> maxn <span style=color:#f92672>||</span> n<span style=color:#f92672>+</span>dn<span style=color:#f92672>&lt;</span><span style=color:#ae81ff>0</span> ) <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>;  <span style=color:#75715e>// 2
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	}<span style=color:#66d9ef>while</span> (<span style=color:#f92672>!</span>n_.compare_exchange_weak(n, n<span style=color:#f92672>+</span>dn,
+</span></span><span style=display:flex><span>			std<span style=color:#f92672>::</span>memory_order_release,
+</span></span><span style=display:flex><span>			std<span style=color:#f92672>::</span>memory_order_relaxed)); <span style=color:#75715e>// 3、4
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>	<span style=color:#66d9ef>return</span> n;
+</span></span><span style=display:flex><span>} 
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>while</span>( bounded_fetch_add( ... ) ){
+</span></span><span style=display:flex><span>	<span style=color:#66d9ef>if</span>( <span style=color:#f92672>++</span>i <span style=color:#f92672>==</span> <span style=color:#ae81ff>8</span>) {
+</span></span><span style=display:flex><span>		<span style=color:#66d9ef>static</span> <span style=color:#66d9ef>constexpr</span> timespec ns <span style=color:#f92672>=</span> {<span style=color:#ae81ff>0</span>,<span style=color:#ae81ff>1</span>};
+</span></span><span style=display:flex><span>		i<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>		nanosleep(<span style=color:#f92672>&amp;</span>ns, NULL);
+</span></span><span style=display:flex><span>	}
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=原子变量数组>原子变量数组
+<a class=header-anchor href=#%e5%8e%9f%e5%ad%90%e5%8f%98%e9%87%8f%e6%95%b0%e7%bb%84></a></h3><blockquote><p>由于atomic不能复制或移动，因此不能拥有一个vector<atomic></p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>std<span style=color:#f92672>::</span>vector<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>unique_ptr<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;&gt;&gt;</span> examp;
+</span></span><span style=display:flex><span>examp.resize(<span style=color:#ae81ff>64</span>);   <span style=color:#75715e>// 64 default unique_ptrs; they point to nothing
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// init the vector with unique_ptrs that actually point to atomics
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> p : examp) {
+</span></span><span style=display:flex><span>	p <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>make_unique<span style=color:#f92672>&lt;</span>std<span style=color:#f92672>::</span>atomic<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;&gt;</span>(<span style=color:#ae81ff>0</span>);   <span style=color:#75715e>// 初始化atomic变量
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// use it
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#f92672>*</span>examp[<span style=color:#ae81ff>3</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>5</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> (<span style=color:#66d9ef>auto</span><span style=color:#f92672>&amp;</span> p : examp) {
+</span></span><span style=display:flex><span>	 cout <span style=color:#f92672>&lt;&lt;</span> <span style=color:#f92672>*</span>p <span style=color:#f92672>&lt;&lt;</span> <span style=color:#e6db74>&#39; &#39;</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=条件变量>条件变量
+<a class=header-anchor href=#%e6%9d%a1%e4%bb%b6%e5%8f%98%e9%87%8f></a></h2><ul><li>本质：一个或多个线程等待某个布尔表达式为真，即等待别的线程“唤醒”它</li><li>场景：多个线程等待同一事件</li><li>为什么和锁一起使用：判断条件时需要加锁；<strong>不满足条件</strong> 和 进入等待唤醒队列 之间如果生产者修改了条件并通知了线程，可能丢失唤醒信号。</li><li>cond.wait()将当前线程加入等待唤醒队列，然后解开锁</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;condition_variable&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 只能和std::mutex一起工作, 只能使用unique_lock
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>condition_variable cond;
+</span></span><span style=display:flex><span><span style=color:#75715e># 可以和任何满足最低标准的互斥量工作
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>condition_variable_any cond;
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>mutex mtx;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 事件生产者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>加锁</span> unique_lock
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#66d9ef>do</span> something
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> <span style=color:#960050;background-color:#1e0010>随机通知一个在等待唤醒队列中的线程（资源可用）</span>
+</span></span><span style=display:flex><span>   cond.notify_one() <span style=color:#f92672>==</span> pthread_cond_signal(<span style=color:#f92672>&amp;</span>cond)
+</span></span><span style=display:flex><span>   <span style=color:#960050;background-color:#1e0010>通知其他所有等待唤醒队列中的线程（状态转换）</span>
+</span></span><span style=display:flex><span>   cond.notify_all() <span style=color:#f92672>==</span> pthread_cond_broadcast(<span style=color:#f92672>&amp;</span>cond)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 事件消费者
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#ae81ff>1.</span> <span style=color:#960050;background-color:#1e0010>加锁</span> unique_lock
+</span></span><span style=display:flex><span><span style=color:#ae81ff>2.</span> <span style=color:#66d9ef>while</span>(<span style=color:#960050;background-color:#1e0010>判断条件不满足</span>){ cond.wait(lk); }
+</span></span><span style=display:flex><span><span style=color:#ae81ff>3.</span> <span style=color:#66d9ef>do</span> something
+</span></span></code></pre></div><h3 id=虚假唤醒>虚假唤醒
+<a class=header-anchor href=#%e8%99%9a%e5%81%87%e5%94%a4%e9%86%92></a></h3><p>原因：</p><ol><li><p>notify_all() 中多个线程被唤醒</p></li><li><p>可能被信号唤醒</p></li><li><p>Linux pthread实现不会出现EINTR错误导致的spurious wakeup</p><p>当一个慢系统调用(read, write 等)被阻塞时，此时外部产生信号，然后捕获处理信号，处理函数返回，这个系统调用不再阻塞而是被中断，返回错误(EINTR)</p></li></ol><p>方法：使用 <strong>while</strong> 而不是 if 来判断</p><h2 id=事件通知eventfd>事件通知eventfd
+<a class=header-anchor href=#%e4%ba%8b%e4%bb%b6%e9%80%9a%e7%9f%a5eventfd></a></h2><ul><li>支持多路IO复用，epoll监听eventfd的读事件</li><li>可以在类中定义唤醒wakeup函数，类外仅需调用wakeup函数</li><li>进程可以先定义eventfd再fork；线程可以通过传值 eventfd</li><li>eventfd不需要加锁</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sys/eventfd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>eventfd</span>(<span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> initval, <span style=color:#66d9ef>int</span> flags);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>uint64_t</span> u <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>ssize_t n;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> evtfd <span style=color:#f92672>=</span> <span style=color:#f92672>::</span>eventfd(<span style=color:#ae81ff>0</span>, EFD_NONBLOCK <span style=color:#f92672>|</span> EFD_CLOEXEC);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>switch</span>(fork()){
+</span></span><span style=display:flex><span><span style=color:#66d9ef>case</span> <span style=color:#ae81ff>0</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>	n <span style=color:#f92672>=</span> write(evtfd, <span style=color:#f92672>&amp;</span>u, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint64_t</span>));
+</span></span><span style=display:flex><span><span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>	n <span style=color:#f92672>=</span> read(evtfd, <span style=color:#f92672>&amp;</span>u, <span style=color:#66d9ef>sizeof</span>(<span style=color:#66d9ef>uint64_t</span>)); 
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h1 id=让步与睡眠>让步与睡眠
+<a class=header-anchor href=#%e8%ae%a9%e6%ad%a5%e4%b8%8e%e7%9d%a1%e7%9c%a0></a></h1><p><strong>yield</strong>：将当前线程所抢到的<strong>时间片让给其他线程</strong>，等到其他线程使用完时间片后，由操作系统调度，当前线程和其他线程一起抢时间片。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span>std<span style=color:#f92672>::</span>this_thread<span style=color:#f92672>::</span>yield()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;sched.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> sched_yield(<span style=color:#66d9ef>void</span>);
+</span></span></code></pre></div><p><strong>sleep</strong>：<strong>阻塞线程</strong>，让出CPU。当休眠时间结束后，重新参与调度。</p><blockquote><p><strong>发生信号时</strong>可能唤醒由于sleep而阻塞的线程。</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;chrono&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>using</span> <span style=color:#66d9ef>namespace</span> std<span style=color:#f92672>::</span>literals<span style=color:#f92672>::</span>chrono_literals
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>this_thread<span style=color:#f92672>::</span>sleep_for(<span style=color:#ae81ff>1</span>s);  <span style=color:#75715e>// 可以使用24h,15min
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>this_thread<span style=color:#f92672>::</span>sleep_for( std<span style=color:#f92672>::</span>chrono<span style=color:#f92672>::</span>milliseconds(<span style=color:#ae81ff>200</span>) )
+</span></span><span style=display:flex><span><span style=color:#75715e># 指定时间点
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>this_thread<span style=color:#f92672>::</span>sleep_until()  <span style=color:#75715e>// 例如早上6点启动
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>unsigned</span> sleep(<span style=color:#66d9ef>unsigned</span> seconds);  <span style=color:#75715e>// 以秒为单位
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>usleep</span>(<span style=color:#66d9ef>int</span> micro_seconds);  <span style=color:#75715e>// 以微秒为单位
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;time.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>nanosleep</span>(<span style=color:#66d9ef>const</span> <span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>timespec</span> <span style=color:#f92672>*</span>req,<span style=color:#66d9ef>struct</span> <span style=color:#a6e22e>timespec</span> <span style=color:#f92672>*</span>rem); <span style=color:#75715e>// 以纳秒为单位
+</span></span></span></code></pre></div><h1 id=获取异步结果>获取异步结果
+<a class=header-anchor href=#%e8%8e%b7%e5%8f%96%e5%bc%82%e6%ad%a5%e7%bb%93%e6%9e%9c></a></h1><ol><li><p>进程通信 或 线程通信</p><ul><li>条件变量：唤醒主线程</li></ul></li><li><p>使用future和promise</p></li></ol><h2 id=future>future
+<a class=header-anchor href=#future></a></h2><ol><li>异步async返回值</li><li>作为std::thread的传入参数</li><li>std::packaged_task 调用</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e># 获取future
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>std<span style=color:#f92672>::</span>promise<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span> pr;
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span> fut <span style=color:#f92672>=</span> pr.get_future();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>DoWork</span>(std<span style=color:#f92672>::</span>promise<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;&amp;</span> pr){
+</span></span><span style=display:flex><span>	pr.set_value(<span style=color:#ae81ff>5</span>);
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> worker(DoWork, std<span style=color:#f92672>::</span>ref(pr));
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>或</span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span>string<span style=color:#f92672>&gt;</span> fut <span style=color:#f92672>=</span> std<span style=color:#f92672>::</span>async(hello)
+</span></span><span style=display:flex><span><span style=color:#960050;background-color:#1e0010>或</span>
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>packaged_task<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span>(<span style=color:#66d9ef>int</span>)<span style=color:#f92672>&gt;</span> task([](<span style=color:#66d9ef>int</span> x) { <span style=color:#66d9ef>return</span> x <span style=color:#f92672>*</span> <span style=color:#ae81ff>3</span>; });
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span><span style=color:#66d9ef>thread</span> t(std<span style=color:#f92672>::</span>move(task), <span style=color:#ae81ff>5</span>);
+</span></span><span style=display:flex><span>std<span style=color:#f92672>::</span>future<span style=color:#f92672>&lt;</span><span style=color:#66d9ef>int</span><span style=color:#f92672>&gt;</span> fut <span style=color:#f92672>=</span> task.get_future();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 等待异步完成
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>cout<span style=color:#f92672>&lt;&lt;</span> fut.wait();
+</span></span><span style=display:flex><span><span style=color:#75715e># 获取异步结果
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>cout<span style=color:#f92672>&lt;&lt;</span> fut.get();
+</span></span><span style=display:flex><span><span style=color:#75715e># 超时等待,wait_for或wait_until
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>if</span> (fut.wait_for(<span style=color:#ae81ff>0</span>) <span style=color:#f92672>==</span> std<span style=color:#f92672>::</span>future_status<span style=color:#f92672>::</span>deferred)  <span style=color:#75715e>// 如果任务被推迟
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>{
+</span></span><span style=display:flex><span>    ...     <span style=color:#75715e>// fut使用get或wait来同步调用f
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>} <span style=color:#66d9ef>else</span> {    <span style=color:#75715e>// 任务没有被推迟
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>while</span>(fut.wait_for(<span style=color:#ae81ff>100</span>ms) <span style=color:#f92672>!=</span> std<span style=color:#f92672>::</span>future_status<span style=color:#f92672>::</span>ready) { <span style=color:#75715e>// 不可能无限循环
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>      ...    <span style=color:#75715e>// 任务没有被推迟也没有就绪，所以做一些并发的事情直到任务就绪
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    }
+</span></span><span style=display:flex><span>    ...        <span style=color:#75715e>// fut就绪
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>}
+</span></span></code></pre></div><h1 id=仅执行一次的函数>仅执行一次的函数
+<a class=header-anchor href=#%e4%bb%85%e6%89%a7%e8%a1%8c%e4%b8%80%e6%ac%a1%e7%9a%84%e5%87%bd%e6%95%b0></a></h1><p>一个线程执行时，<strong>另外一个会被锁住</strong>直到函数执行完毕</p><p>场景：延迟初始化</p><p>编译时需要添加-pthread</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;mutex&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>X</span>
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    data getData()<span style=color:#66d9ef>const</span>
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>        std<span style=color:#f92672>::</span>call_once(initDataFlag, <span style=color:#f92672>&amp;</span>X<span style=color:#f92672>::</span>initData, <span style=color:#66d9ef>this</span>);
+</span></span><span style=display:flex><span>        ...
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span><span style=color:#66d9ef>private</span><span style=color:#f92672>:</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>mutable</span> std<span style=color:#f92672>::</span>once_flag initDataFlag;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>initData</span>()<span style=color:#66d9ef>const</span>;
+</span></span><span style=display:flex><span>};
+</span></span></code></pre></div><h1 id=退出>退出
+<a class=header-anchor href=#%e9%80%80%e5%87%ba></a></h1><p>通常while( running_ )死循环作为函数</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-c++ data-lang=c++><span style=display:flex><span><span style=color:#75715e># 终止进程，不进行任何清理
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 生成coredump
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdlib.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>abort()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 终止进程前，将文件缓存区写回文件，销毁全局和static对象，关闭IO通道
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 会执行退出函数atexit
+</span></span></span><span style=display:flex><span><span style=color:#75715e># 不会调用局部对象的析构函数（需在exit前显式调用）
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;stdlib.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>exit(<span style=color:#ae81ff>0</span>) <span style=color:#75715e>// 正常退出
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 终止进程, 不刷新IO缓冲区, 不执行退出函数atexit（和exit相比）
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&lt;unistd.h&gt;</span><span style=color:#75715e>
+</span></span></span><span style=display:flex><span><span style=color:#75715e></span>_exit(<span style=color:#ae81ff>0</span>)
+</span></span></code></pre></div><h2 id=设置退出函数>设置退出函数
+<a class=header-anchor href=#%e8%ae%be%e7%bd%ae%e9%80%80%e5%87%ba%e5%87%bd%e6%95%b0></a></h2><p>atexit在<strong>return、exit</strong>前执行，在_exit和abort前不执行atexit</p><p>调用退出函数顺序 与 <strong>函数登记</strong>相反</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:2;-o-tab-size:2;tab-size:2><code class=language-C++ data-lang=C++><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>func1</span>() { printf(<span style=color:#e6db74>&#34;The process is done...</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>); }
+</span></span><span style=display:flex><span>atexit(func1);
+</span></span></code></pre></div><h1 id=协程routine纤程fiber>协程Routine/纤程Fiber
+<a class=header-anchor href=#%e5%8d%8f%e7%a8%8broutine%e7%ba%a4%e7%a8%8bfiber></a></h1><table><thead><tr><th></th><th>有栈（纤程）</th><th>无栈</th></tr></thead><tbody><tr><td>本质</td><td>可以中断和恢复执行的函数</td><td>状态机</td></tr><tr><td>存储</td><td>函数栈</td><td>系统栈</td></tr><tr><td>优点</td><td>强大且灵活</td><td>效率高<sup>（使用系统栈，CPU cache缓存友好）</sup></td></tr><tr><td>支持</td><td>libco<br>boost.context<br></td><td>C++20</td></tr><tr><td>缺点</td><td>栈过多后，切换开销大，占用内存多</td><td></td></tr></tbody></table><h1 id=死锁>死锁
+<a class=header-anchor href=#%e6%ad%bb%e9%94%81></a></h1><h2 id=必要条件>必要条件
+<a class=header-anchor href=#%e5%bf%85%e8%a6%81%e6%9d%a1%e4%bb%b6></a></h2><ol><li><strong>互斥</strong>：资源独占且排他使用</li><li><strong>不可剥夺</strong>：只能由获得该资源的进程释放资源</li><li><strong>请求和保持</strong>：在占有一部分资源的同时，申请新的资源</li><li><strong>循环等待</strong>：A等待B占用的资源，B等待C占用的资源，C等待A占用的资源</li></ol><h2 id=预防死锁>预防死锁
+<a class=header-anchor href=#%e9%a2%84%e9%98%b2%e6%ad%bb%e9%94%81></a></h2><ol><li><p>进程在申请新资源时不能得到满足而变为等待状态之前，必须释放已占有的资源</p></li><li><p>一次性申请所需的所有资源：无法预知进程所需的所有资源；降低资源利用率，降低并发度</p></li><li><p><strong>资源有序分配</strong></p><ul><li>对资源编号，按顺序申请资源</li><li>层次锁，每次从高到低上锁</li><li>使用 std::lock 加多个锁</li></ul></li><li><p>在分配资源时，使用 银行家算法 检测</p></li></ol><h3 id=银行家算法>银行家算法
+<a class=header-anchor href=#%e9%93%b6%e8%a1%8c%e5%ae%b6%e7%ae%97%e6%b3%95></a></h3><p>特点：</p><ul><li>本质：要设法保证系统动态分配资源后不进入不安全状态，以避免可能产生的死锁</li><li><strong>安全序列</strong>：序列中每一个进程需要的资源（Need）&lt;= 系统当前剩余的资源量 + 前面的进程所占用的资源之和<sup>（前面的进程执行完成之后会释放资源）</sup></li><li>如果不存在一个安全序列，则系统处于<strong>不安全</strong>状态。</li></ul><p><strong>构建安全序列</strong>：</p><table><thead><tr><th>进程顺序</th><th>系统剩余资源（before）</th><th>进程已占有资源（Alloc）</th><th>进程需要的资源（Need）<br>= 最大资源需求MAX - Alloc</th><th>系统剩余资源（after）</th></tr></thead><tbody><tr><td>P1</td><td>1 5 2 0<br></td><td>1 3 5 4</td><td>1 0 0 2</td><td>1 8 7 4</td></tr><tr><td>P2</td><td>1 8 7 4</td><td></td><td></td><td></td></tr></tbody></table><ol><li><p>寻找满足以下条件的进程</p><ul><li>请求资源 &lt;= 进程需要的资源Need</li><li>请求资源 &lt;= 系统剩余资源Avail</li></ul></li><li><p>进程完成，系统剩余资源Avail += 进程占有资源</p></li></ol><h2 id=检测和解决死锁>检测和解决死锁
+<a class=header-anchor href=#%e6%a3%80%e6%b5%8b%e5%92%8c%e8%a7%a3%e5%86%b3%e6%ad%bb%e9%94%81></a></h2><p>特点：</p><ul><li><p><strong>本质</strong>：允许死锁发生，监控死锁是否发生，采取措施并以最小代价解决死锁</p></li><li><p><strong>检测时机</strong>：定时检测、进程等待时（请求锁时写入开始等待的时间戳，请求成功后将时间戳置0<sup>(可以每隔一段时间检测，也可以设置定时器唤起死锁检测)</sup>）、资源利用率<sup>（CPU利用率、内存利用率）</sup>下降时等</p></li><li><p><strong>检测方法</strong>：进程-资源分配图、使用gdb或gstack查看调用栈、off-cpu火焰图</p></li><li><p><strong>解决死锁</strong>：</p><ol><li>剥夺其他进程的资源给死锁进程</li><li>逐个撤销死锁进程</li><li>定期设置检查点，某个死锁进程回滚到取得资源的检查点，将释放的资源分配给其他死锁进程</li></ol></li></ul><h3 id=进程-资源分配图>进程-资源分配图
+<a class=header-anchor href=#%e8%bf%9b%e7%a8%8b-%e8%b5%84%e6%ba%90%e5%88%86%e9%85%8d%e5%9b%be></a></h3><ol><li>先看系统还剩下多少资源没分配，再看有哪些进程是不阻塞<sup>（系统有足够的空闲资源分配给它）</sup>的</li><li>把不阻塞的进程的所有边都去掉，形成一个孤立的点，再把系统分配给这个进程的资源回收回来</li><li>看剩下的进程有哪些是不阻塞的，然后又把它们逐个变成孤立的点</li><li>如果所有的资源和进程都变成孤立的点，则可完全简化，不会产生死锁</li></ol></div><footer class=post-footer><div class=post-tags><a href=/tags/%e5%a4%9a%e7%ba%bf%e7%a8%8b>多线程</a></div><div class=addthis_inline_share_toolbox style=text-align:center></div><hr><div class=reward-container><div><i class="fa-solid fa-mug-hot"></i>请我喝杯咖啡吧 ヾ(^▽^*)))</div><button>
+赞赏</button><div class=post-reward><div class=post-reward-item><img src=/imgs/img-lazy-loading.gif data-src=/imgs/ali-pay.png alt="arukasxy - 支付宝">
+<span>支付宝</span></div><div class=post-reward-item><img src=/imgs/img-lazy-loading.gif data-src=/imgs/wechat-pay.png alt="arukasxy - 微信">
+<span>微信</span></div></div></div><div class=post-copyright><img src=/imgs/cc/cc.svg width=75 height=75 align=right alt=共享知识><ul><li class=post-copyright-title><strong>文章标题：</strong>
+并发</li><li class=post-copyright-author><strong>本文作者： </strong>arukasxy</li><li class=post-copyright-link><strong>本文链接：</strong>
+<a id=post-cr-link href=/post/concurrent-zcq7q0.html title=并发>/post/concurrent-zcq7q0.html</a></li><li class=post-copyright-license><strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <i class="fab fa-fw fa-creative-commons"></i><a target=_blank href=https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh>BY-NC-SA</a> 许可协议。转载请注明出处！</li></ul></div><div class=followme><span>欢迎关注我的其它发布渠道</span><div class=social-list><div class=social-item><a target=_blank class=social-link href=/images/wechat_channel.jpg><span class=icon><i class="fab fa-weixin"></i>
+</span><span class=label>WeChat</span></a></div><div class=social-item><a target=_blank class=social-link href=/atom.xml><span class=icon><i class="fa fa-rss"></i>
+</span><span class=label>RSS</span></a></div></div></div><div class=post-nav><div class="post-nav-next post-nav-item"><a href=/post/telecommunication-ot0ya.html rel=next title=网络通信><i class="fa fa-chevron-left"></i> 网络通信</a></div><div class="post-nav-prev post-nav-item"></div></div></footer></article></div><div id=comments class=post-comments><div class=comment-head><div class=comment-headline><i class="fas fa-comments fa-fw"></i>
+<span>评论交流</span></div></div><div class=comment-wrap><div><div class=comment-loading><i class="fa fa-sync fa-spin"></i></div><div class=waline-container></div></div></div></div></div></main><footer class=footer><div class=footer-inner><div class=copyright>&copy;
+<span itemprop=copyrightYear>2010 - 2024
+</span><span class=with-love><i class="fa fa-heart"></i>
+</span><span class=author itemprop=copyrightHolder>arukasxy</span></div><div class=powered-by>由 <a href=https://gohugo.io title=0.131.0 target=_blank>Hugo</a> & <a href=https://github.com/hugo-next/hugo-theme-next title=4.6.3 target=_blank>Hugo NexT.Gemini</a> 强力驱动</div><div class=beian><a href=https://beian.miit.gov.cn target=_blank>粤ICP备 18047355-1 号</a>
+<img src=/imgs/gongan.png alt=沪公网安备>
+<a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=31011402009770" target=_blank>沪公网安备 31011402009770 号</a></div><div class=vendors-list><a target=_blank href=https://github.com title=Github><img src=/imgs/img-lazy-loading.gif data-src=/imgs/vendors/github.svg alt=Github>
+</a><span>提供CDN/云资源支持</span></div></div></footer><script type=text/javascript src=/3rd/animejs/3.2.2/anime.min.js crossorigin=anonymous defer></script><script type=text/javascript src=/3rd/viewerjs/1.11.6/viewer.min.js crossorigin=anonymous defer></script><script class=next-config data-name=main type=application/json>{"bookmark":{"color":"#222","enable":true,"save":"manual"},"copybtn":true,"darkmode":true,"giscus":{"cfg":{"category":"Comments","categoryid":null,"emit":false,"inputposition":"top","mapping":"title","reactions":false,"repo":"username/repo-name","repoid":null,"theme":"preferred_color_scheme"},"js":"https://giscus.app/client.js"},"hostname":"/","i18n":{"ds_day":" 天前","ds_days":" 天 ","ds_hour":" 小时前","ds_hours":" 小时 ","ds_just":"刚刚","ds_min":" 分钟前","ds_mins":" 分钟","ds_month":" 个月前","ds_years":" 年 ","empty":"没有找到任何搜索结果：${query}","hits":"找到 ${hits} 个搜索结果","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","placeholder":"搜索..."},"lang":"zh-CN","lazyload":false,"localSearch":{"enable":true,"limit":1e3,"path":"/searchindexes.xml","preload":false,"topnperarticle":-1,"trigger":"auto","unescape":false},"motion":{"async":true,"enable":true,"transition":{"collheader":"fadeInLeft","postblock":"fadeIn","postbody":"fadeInDown","postheader":"fadeInDown","sidebar":"fadeInUp"}},"postmeta":{"comments":{"enable":false,"plugin":"waline"},"views":{"enable":true,"plugin":"busuanzi"}},"root":"/","scheme":"Gemini","sidebar":{"display":"post","offset":12,"padding":18,"position":"left","width":256},"vendor":{"plugins":"local","router":{"name":"local","type":"modern","url":"/3rd"}},"version":"4.6.3","waline":{"cfg":{"emoji":false,"imguploader":false,"placeholder":"请文明发言哟 ヾ(≧▽≦*)o \n\n可用快捷键选取表情符号：😀😄😁🥳👻👽👀🚄\n(Window系统：Win+.，Mac系统：Control+Command+Space)","reaction":true,"reactiontext":["点赞","踩一下","得意","不屑","尴尬","睡觉"],"reactiontitle":"你认为这篇文章怎么样？","requiredmeta":["nick","mail"],"serverurl":"https://walinejs.comment.lithub.cc","sofa":"快来发表你的意见吧 (≧∀≦)ゞ","wordlimit":200},"css":{"alias":"@waline/client","file":"dist/waline.css","name":"waline","version":"2.15.8"},"js":{"alias":"@waline/client","file":"dist/waline.js","name":"waline","version":"2.15.8"}}}</script><script type=text/javascript src=/js/main.min.befa9b7d22ec90da86c74c5dbff5ee42c12e9fc6d6f4448bfcc596cc329b19e8.js defer></script></body></html>

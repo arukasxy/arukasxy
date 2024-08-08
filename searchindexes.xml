@@ -80,7 +80,13 @@ template&lt;class T=int, typename Alloc&gt; class Swa(T a,T b) { T temp; temp = 
   ]]></content></entry><entry><title>编译</title><url>/post/compile-u6c6n.html</url><categories><category>编译</category></categories><tags><tag>编译</tag></tags><content type="html"><![CDATA[  编译 编译命令 单文件编译
 g++ test.cpp -o test -fsanitize=address cmake和make编译
 设置安装目录：设置输出目录（+安装目录）
-./configure cmake -S . -B build # 或使用 cd build + cmake ../ cd build make -sj 2 2&amp;gt;&amp;amp;1|grep rror # -B always-make 总是重新构建所有 # -d | more 打印调试信息 # -n 预演make，但不实际执行，可以将其重定向到一个文件中 # --DDEBUG=ON debug模式 # -j4 多线程编译 # -s 静默安装 make install -sj 16 ctest 或 ./hello_test # 执行测试, ctest需add_test make unistall # 卸载安装的程序 make clean # 删除make产生的文件 make distclean # 删除由./configure产生的文件 编译脚本build.sh #!/bin/sh set -x SOURCE_DIR=`pwd` # 只能以./build.sh执行，不能在文件夹外执行 BUILD_DIR=${BUILD_DIR:-../build} BUILD_TYPE=${BUILD_TYPE:-release} INSTALL_DIR=${INSTALL_DIR:-../${BUILD_TYPE}-install-cpp11} CXX=${CXX:-g++} ln -sf $BUILD_DIR/$BUILD_TYPE-cpp11/compile_commands.json mkdir -p $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cd $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cmake \ -DCMAKE_BUILD_TYPE=$BUILD_TYPE \ -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ $SOURCE_DIR \ &amp;amp;&amp;amp; make $* 优化级别 g++ -c -Q -O2 …  ]]></content></entry><entry><title>string字符串</title><url>/post/string-string-1g9olm.html</url><categories><category>数据结构</category></categories><tags><tag>字符串</tag></tags><content type="html"><![CDATA[  string字符串 翻转字符串 reverse(s.begin(), s.end()); reverse(s.begin()+i , s.begin()+i+k); // 翻转以i为起始的k个字符串 void reverse(char *str, int n){ std::reverse(str, str+n); } 分割split void SplitString(const std::string&amp;amp; s, std::vector&amp;lt;std::string&amp;gt;&amp;amp; v, const std::string&amp;amp; c) { std::string::size_type pos1, pos2; pos2 = s.find(c); pos1 = 0; while(std::string::npos != pos2) { // if(pos2 != pos1) 忽略空子串 v.push_back(s.substr(pos1, pos2-pos1)); pos1 = pos2 + c.size(); pos2 = s.find(c, pos1); } if(pos1 != s.length()) v.push_back(s.substr(pos1)); } 使用stringstream：会保存空字符串，支持连续分隔符（中间为空字符串），支持字符串分隔符
+./configure cmake -S . -B build # 或使用 cd build + cmake ../ cd build make -sj 2 2&amp;gt;&amp;amp;1|grep rror # -B always-make 总是重新构建所有 # -d | more 打印调试信息 # -n 预演make，但不实际执行，可以将其重定向到一个文件中 # --DDEBUG=ON debug模式 # -j4 多线程编译 # -s 静默安装 make install -sj 16 ctest 或 ./hello_test # 执行测试, ctest需add_test make unistall # 卸载安装的程序 make clean # 删除make产生的文件 make distclean # 删除由./configure产生的文件 编译脚本build.sh #!/bin/sh set -x SOURCE_DIR=`pwd` # 只能以./build.sh执行，不能在文件夹外执行 BUILD_DIR=${BUILD_DIR:-../build} BUILD_TYPE=${BUILD_TYPE:-release} INSTALL_DIR=${INSTALL_DIR:-../${BUILD_TYPE}-install-cpp11} CXX=${CXX:-g++} ln -sf $BUILD_DIR/$BUILD_TYPE-cpp11/compile_commands.json mkdir -p $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cd $BUILD_DIR/$BUILD_TYPE-cpp11 \ &amp;amp;&amp;amp; cmake \ -DCMAKE_BUILD_TYPE=$BUILD_TYPE \ -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \ $SOURCE_DIR \ &amp;amp;&amp;amp; make $* 优化级别 g++ -c -Q -O2 …  ]]></content></entry><entry><title>内存管理</title><url>/post/memory-management-z1c7hkf.html</url><categories><category>内存管理</category></categories><tags><tag>内存</tag></tags><content type="html"><![CDATA[  内存管理 内存分区 分为代码区、常量区、全局/静态区、堆区、栈区
+参考进程地址空间
+内存分配位置 参考：进程地址空间
+代码 分配位置 char str[] 字符数组 栈或全局区 const char str[] 字符数组（即使字符串相同，其内存地址也不同） 栈或全局区 char *str=&amp;ldquo;hello&amp;rdquo; 字符常量（相同字符常量在文字常量区仅保存一份，即地址相同）
+文字常量区 const char *str=&amp;ldquo;hello&amp;rdquo; 文字常量区 int a = 0; # 全局初始化区 char *p1; # 全局未初始化区 main() { int b; # 栈 char s[] = &amp;#34;abc&amp;#34;; # 栈(char[]) char *p2; char *p3 = &amp;#34;123456&amp;#34;; # &amp;#34;123456&amp;#34;在常量区，p3在栈上。 static int c =0； # 全局（静态）初始化区 p1 = (char *)malloc(10); p2 = (char *)malloc(20); # 分配得来的10和20字节的区域在堆区。 strcpy(p1, &amp;#34;123456&amp;#34;); # 123456放在常量区，编译器可能会将它与p3所指向的&amp;#34;123456&amp;#34;优化成一个地方。 } 栈内存管理（stack） 通过{ } 限定作用域
+堆和栈区别 栈 堆 场景 小块、频繁的内存分配 延长变量的生命周期；栈中没有足够的空间 生长方向 向低地址增长 向高地址增长 容量 比较小，如8M(Linux 上通过 ulimit -s 查看) 和虚拟内存相关 分配效率 软硬件（push和pop指令、rbp和rsp寄存器，）​结合优（push和pop指令、rbp和rsp寄存器）​化（push和pop指令、rbp和rsp寄存器，），效率高 内存碎片 连续分配 不连续的，有内存碎片 分配回收 自动 手动 例子：
+string中在栈中分配空间给小字符串（&amp;lt;=15个字符的字符串） 堆内存管理（new/malloc） new malloc(#include &amp;lt;stdlib.h&amp;gt;) 内存大小计算 new A; (A *)malloc(sizeof(A)); 返回类型转换 对象类型的指针， …  ]]></content></entry><entry><title>string字符串</title><url>/post/string-string-1g9olm.html</url><categories><category>数据结构</category></categories><tags><tag>字符串</tag></tags><content type="html"><![CDATA[  string字符串 翻转字符串 reverse(s.begin(), s.end()); reverse(s.begin()+i , s.begin()+i+k); // 翻转以i为起始的k个字符串 void reverse(char *str, int n){ std::reverse(str, str+n); } 分割split void SplitString(const std::string&amp;amp; s, std::vector&amp;lt;std::string&amp;gt;&amp;amp; v, const std::string&amp;amp; c) { std::string::size_type pos1, pos2; pos2 = s.find(c); pos1 = 0; while(std::string::npos != pos2) { // if(pos2 != pos1) 忽略空子串 v.push_back(s.substr(pos1, pos2-pos1)); pos1 = pos2 + c.size(); pos2 = s.find(c, pos1); } if(pos1 != s.length()) v.push_back(s.substr(pos1)); } 使用stringstream：会保存空字符串，支持连续分隔符（中间为空字符串），支持字符串分隔符
 #include &amp;lt;sstream&amp;gt; stringstream ss(line) 或 ss&amp;lt;&amp;lt;line; # n个字符串 for(int i=0;i&amp;lt;n;i++) getline(ss,v[i],&amp;#39;,&amp;#39;); # 不确定字符串数目 while(getline(ss,str,&amp;#39;,&amp;#39;)) vec.push_back(str); 分隔符可能连续：
 void SplitString(const std::string&amp;amp; str, std::vector&amp;lt;std::string&amp;gt;&amp;amp; res, const char chrc) { if ( str.empty( ) ) return ;	//判空 std::string strs = str + chrc; //末尾加上分隔符方便计算 size_t size = …  ]]></content></entry><entry><title>类</title><url>/post/kind-z2cvctu.html</url><categories><category>语法</category></categories><tags><tag>类</tag></tags><content type="html"><![CDATA[  类 struct class struct 默认访问权限 private public 默认继承 private public 定义模板参数
 （代替typename） √ × C++对struct进行了拓展，和C中的struct不同
@@ -99,7 +105,44 @@ class B: virtual public A{} 多态 含义：根据不同的对象类型，调用
 select 优点：兼容性好
 缺点：
 每次调用select函数时向OS传递监视对象信息 调用select函数后对所有文件描述符进行循环 监听的文件描述符数量 &amp;lt; FD_SIZE（1024） 场景：服务器端接入者少；程序应具有兼容性
-int select(int maxfd, fd_set *readset , fd_set *exceptset, const struct timeval *timeout); # maxfd 监视描述符数量，设置为最大的文件描述符值+1 # readset 将所有关注“是否存在待读取数据”的文件描述符注册到fd_set型变量 # writeset 将所有关注“是否可传输无阻塞数据”的文件描述符注册到fd_set型变量 # exceptset 将所有关注“是否发生异常”的文件描述符注册到fd_set型变量 # timeout为以1/1000秒为单位的等待时间，传递-1表示等待到事件发生，传递0表示执行一次非阻塞式的检查 # 返回：发生错误为-1，超时返回0，事件返回描述符数量 struct timeval { long tv_sec; // seconds long tv_usec; // mircroseconds } #include &amp;lt;sys/select.h&amp;gt; #include &amp;lt;sys/time.h&amp;gt; # 1. 设置文件描述符 fd_set reads, …  ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
+int select(int maxfd, fd_set *readset , fd_set *exceptset, const struct timeval *timeout); # maxfd 监视描述符数量，设置为最大的文件描述符值+1 # readset 将所有关注“是否存在待读取数据”的文件描述符注册到fd_set型变量 # writeset 将所有关注“是否可传输无阻塞数据”的文件描述符注册到fd_set型变量 # exceptset 将所有关注“是否发生异常”的文件描述符注册到fd_set型变量 # timeout为以1/1000秒为单位的等待时间，传递-1表示等待到事件发生，传递0表示执行一次非阻塞式的检查 # 返回：发生错误为-1，超时返回0，事件返回描述符数量 struct timeval { long tv_sec; // seconds long tv_usec; // mircroseconds } #include &amp;lt;sys/select.h&amp;gt; #include &amp;lt;sys/time.h&amp;gt; # 1. 设置文件描述符 fd_set reads, …  ]]></content></entry><entry><title>并发</title><url>/post/concurrent-zcq7q0.html</url><categories><category>并发</category></categories><tags><tag>多线程</tag></tags><content type="html">  并发 进程 线程 协程 本质 资源分配 CPU调度的最小单位 用户态线程
+在堆上模拟栈 + 实现调度器 通信 进程通信IPC 共享内存 切换开销 CPU的上下文切换（保存和恢复相关寄存器的内容）
+加载页表
+可能刷新（当ASID分配完后，flush所有TLB，重新分配ASID）快表TLB
+系统调用 CPU的上下文切换
+系统调用
+CPU的上下文切换 共享 内存空间
+文件描述符
+信号处理器
+进程 ID / 进程组 ID
+不共享 栈
+线程 ID
+寄存器
+错误返回码（系统调用或库函数发生错误时，会设置全局变量 errno，各个线程的错误返回码应该是独立的）
+信号屏蔽码（每个线程所感兴趣的信号不同，所以线程的信号屏蔽码应该由线程自己管理；但每个线程都共享本进程的信号处理器）
+优点 开销小
+通信方便 不需要用户态转换到内核态的切换成本 缺点 线程发生错误后，OS会终止整个进程 优点 缺点 场景 一个单线程的进程 简单
+不能发挥多核能力
+EventLoop非抢占，可能发生优先级反转
+限制程序的CPU占用率
+辅助性程序和主进程在同一台机器上时（如日志文件压缩备份服务应使用单线程压缩工具（gzip/bzip））
+程序可能会fork(2)
+看门狗程序（启动其他进程）
+IO很快达到瓶颈（如静态Web服务器/FTP服务器，很少的CPU负载能让IO跑满）
+任务执行时间&amp;amp;raquo;进程创建和销毁时间 一个多线程的进程
+减少CPU Cache换入换出
+可scale up(纵向拓展，即机器性能提升) 工作集（服务程序响应一次请求所访问的内存大小）较大
+共享数据可修改
+区分事件优先级
+不是IO或CPU密集型（latency和throughput同样重要，不是逻辑简单的IO密集型或CPU密集型程序） 多个单线程的进程（将一个单线程的进程 运行多份） 简单 工作集（服务程序响应一次请求所访问的内存大小）较小
+CPU密集型
+无共享数据或共享数据只读 主进程 +
+Worker进程 进程 进程状态 三态模型：就绪态、运行态、阻塞态
+五态模型：新建态、就绪态、运行态、阻塞态、终止态
+进程控制原语：进程创建、进程阻塞、唤醒进程、进程终止
+S/STAT 含义 事件 R TASK_RUNNING 已就绪/正在执行
+放入CPU的执行队列中 S TASK_INTERRUPTIBLE 可中断的睡眠状态
+等待事件发生 D …  </content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
 我们的愿景 延续 NexT 经典的黑白调搭配，保持简单的易用性及强大的功能。
 使用反馈 加入 GitHub Discussions 或 Gitter 在线讨论 &amp;#x1f37b; GitHub Issues 提交错误报告 &amp;#x1f41b; GitHub Feature 表新功能的想法 &amp;#x2728; 同时国内用户也可加入 QQ 群交流： 604710815
   </content></entry><entry><title>站点示例</title><url>/flinks.html</url><categories/><tags/><content type="html">  如想交换本站友情链接，请在评论区留下你的站点信息，格式参考如下：
