@@ -28,6 +28,31 @@ $hi(key) = (h(key)+di)% TableSize$
   ]]></content></entry><entry><title>map字典</title><url>/post/map-dictionary-z1xnnbh.html</url><categories><category>数据结构</category></categories><tags><tag>字典</tag></tags><content type="html"><![CDATA[  map字典 成员函数 函数 功能 empty() 判空 map 底层实现：红黑树，查找时间复杂度为$O(logn)$ 按key进行排序，默认std::less从小到大 key可以使用pair #include &lt;map&gt; # 从大到小排序 map&lt;string, int, std::greater&lt;string&gt;&gt; mapWord; # 删除数据 mp.erase(key) if(iter != mp.end()) iter = mp.erase (iter) ; unordered_map 底层实现：哈希表 查询复杂度为O(1)，适用于查找频率高 key不能使用pair，需自定义哈希函数 不能删除指定元素 #include &lt;unordered_map&gt; unordered_map&lt;int, string&gt; mp = {{1, &#34;apple&#34;}, {2,&#34;watermelon&#34;}}; # 添加数据 mp.insert(unordered_map&lt;int,string&gt;::value_type(1,”sakura”)) mp.insert(std::pair&lt;int,string&gt;(1,”sakura”)) mp.insert(std::make_pair(1,”sakura”)) people[&#34;Jim&#34;] = 22; # 删除元素 mp.erase(key) //返回删除元素的个数 if(iter != mp.end()) iter = mp.erase (iter) ;	//返回被移除元素后的元素的迭代器 multimap 底层实现：红黑树，查找时间复杂度为$O(logn)$
 允许key重复
 #include &lt;multimap&gt; ‍
+  ]]></content></entry><entry><title>stack栈</title><url>/post/stack-stack-zfgeku.html</url><categories><category>数据结构</category></categories><tags><tag>栈</tag></tags><content type="html"><![CDATA[  stack栈 栈 特点：
+先入后出 #include &lt;stack&gt; stack&lt;int&gt; st; 底层实现 支持empty()、back()、push_back()、pop_back()的容器
+底层容器：vector、deque（默认）、list
+成员函数 函数 功能 push() 压栈 pop() 弹栈 top() 栈顶 stack().swap(st) 清空 出栈序列 n个不同元素进栈，出栈序列的个数为$1/(n+1)*\mathrm{C}_{2n}^{n}$ 双栈 ​​
+特点：
+用一个数组存储两个栈 场景：
+当两个栈的空间需求有相反的关系时；
+最好是一个栈增长时，另一个栈缩短；
+需要从一个栈中取出元素放入另一个栈   ]]></content></entry><entry><title>数字</title><url>/post/number-z2upfwa.html</url><categories><category>数据结构</category></categories><tags><tag>数字</tag></tags><content type="html"><![CDATA[  数字 大小范围（数值极限） 数据类型 大小 头文件 INT_MAX
+INT_MIN 2147483647(10位)
+-2147483648
+limits.h FLT_MAX
+FLT_MIN limits.h DBL_MAX
+DBL_MIN float.h LONG_MAX
+LONG_MIN
+LLONG_MAX
+LLONG_MIN
+float能表示的最大正整数为2^32
+double能表示的最大正整数为2^64
+#include &lt;limits&gt; using PageNum = int32_t; std::numeric_limits&lt;PageNum&gt;::max() std::numeric_limits&lt;short&gt;::max() numeric_limits&lt;char&gt;::is_signed // 是否带符号 numeric_limits&lt;string&gt;::is_specialized // 是否存在limit 空间大小(+数字类型) 数字类型 32位 64位 char 1字节 short 2 int 4 float 4 double 8 long 4 8 long long 8 unsigned long long 8 进制转换 也可以使用stringstream实现
+# 任意进制转十进制 int a = stoi(str, 0, 2); int stoi(int m, string s){ int ans=0; for(int i=0;i&lt;s.size();i++){ char t=s[i]; if(t&gt;=&#39;0&#39;&amp;&amp;t&lt;=&#39;9&#39;) ans=ans*m+t-&#39;0&#39;; else ans=ans*m+t-&#39;a&#39;+10; } return ans; } # 十进制数n转任意m进制 #include&lt;cstdlib&gt; char *itoa(int value, char *string, int radix); itoa(num, str, 2); string itoa(int n,int m){ string ans=&#34;&#34;; do{ int t=n%m; if(t&gt;=0&amp;&amp;t&lt;=9) ans+=(t+&#39;0&#39;); else ans+=(t+&#39;a&#39;-10); n/=m; }while(n); reverse(ans.begin(),ans.end()); return ans; } 随机数生成rand 要取得[a,b)的随机整数，使用(rand() % (b-a))+ a （结果值含a不含b）
+要取得[a,b]的随机整数，使用(rand() % (b-a+1))+ a （结果值含a和b）
+要取得(a,b]的随机整数，使用(rand() % (b-a))+ a + 1 （结果值不含a含b）
+#include&lt;time.h&gt; #include&lt;cstdlib&gt; # 设置随机种子，time(nullptr) 一秒钟才变化一次，作为随机种子变化频率太低，容易被预测 srand(time(NULL)); # 生成[0,i)之间的随机数 #define random(x) (rand()%x) # 使用静态变量保存状态，调用时加锁，不可重入 int rand(void); # rand的可重入版本 int rand_r(unsigned int *seedp); 判断两个数是否异号 int x = -1, y = 2; bool f = ((x ^ y) &lt; 0); // true 判断是否是2的指数 原理：一个数如果是 2 的指数，那么它的二进制表示一定只含有一个 1
+bool isPowerOfTwo(int n) { if (n &lt;= 0) return false; return (n &amp; (n - 1)) == 0; } 数字类型大小size_t #include &lt;cstddef&gt; ‍
   ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
 我们的愿景 延续 NexT 经典的黑白调搭配，保持简单的易用性及强大的功能。
 使用反馈 加入 GitHub Discussions 或 Gitter 在线讨论 &amp;#x1f37b; GitHub Issues 提交错误报告 &amp;#x1f41b; GitHub Feature 表新功能的想法 &amp;#x2728; 同时国内用户也可加入 QQ 群交流： 604710815
