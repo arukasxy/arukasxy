@@ -102,7 +102,13 @@ struct IMachine: IPrinter, IScanner class Derived: public BaseA, public BaseB { 
 作用：
 解决多继承/菱形继承的“数据冗余”：在一个派生类中保留间接基类的多份同名成员，例如A派生B和C，D继承了B和C，则A的成员变量和成员函数在D中有两份。虚继承中仅保留一份间接基类的成员。 解决命名冲突：D如果想访问A的成员变量，则编译器不知道它究竟来自 A &amp;ndash;&amp;gt;B&amp;ndash;&amp;gt;D 这条路径，还是来自 A&amp;ndash;&amp;gt;C&amp;ndash;&amp;gt;D 这条路径，产生二义性，需要使用B::m_a来指明。 使用：
 class B: virtual public A{} 多态 含义：根据不同的对象类型，调用不同的函数
-编译时 …  ]]></content></entry><entry><title>网络通信</title><url>/post/telecommunication-ot0ya.html</url><categories><category>网络</category></categories><tags><tag>网络</tag></tags><content type="html"><![CDATA[  网络通信 TCP/IP模型(+OSI模型 + 常用协议) OSI模型 TCP/IP模型 功能 数据封装 常用协议（设备） 应用层 应用层
+编译时 …  ]]></content></entry><entry><title>set堆</title><url>/post/set-pile-2vfocg.html</url><categories><category>数据结构</category></categories><tags><tag>堆</tag></tags><content type="html"><![CDATA[  set堆 **==完全二叉树==**​（不是平衡二叉树） 可以使用数组实现 任意节点的值是其子树所有节点的最值 小根堆中最大的数一定是放在叶子节点上（堆本身是个完全二叉树，完全二叉树的叶子节点的位置大于[n/2]） 数组实现 ​​​
+当数组从0开始时，下标为k的结点的父结点下标为$(k-1)/2$；左儿子下标为$2$​*$i+1$​ ，右儿子下标为​$2$*​$i+2$。
+当数组从1开始时，下标为k的结点的父结点下标为$k/2$；左儿子下标为$2$​*$i$​ ，右儿子下标为​$2$*​$i+1$。
+复杂度 建堆时间复杂度：==$O(n)$==
+堆排序时间复杂度：==$O(nlogn)$==
+STL堆算法 pop_heap 将堆的第零个元素和最后一个元素交换位置，再针对前n-1个元素调用make_heap()函数,注意并没有移除元素 #include &amp;lt;algorithm&amp;gt; # 将可迭代容器（如vector）变成堆（默认大根堆less） std::make_heap( q.begin(), q.end(), less&amp;lt;int&amp;gt;() ) # 将数据插入堆中 q.push_back(val); std::push_heap( q.begin(), q.end() ); # 弹出数据 std::pop_heap( q.begin(), e.end() ) q.pop_back() 堆实现 以下为大根堆，将&amp;lt;改成&amp;gt;即为小根堆
+# 从下标1开始存储数据，如果下标从0，参考向下调整中的代码 class Heap { private: vector&amp;lt;int&amp;gt; a; // 数组 int n; // 堆可以存储的最大数据个数 int count; // 堆中已经存储的数据个数 public: Heap(int capacity) { a.resize( capacity + 2); n = capacity; count = 0; } void insert(int data) { ++count; a[count] = data; int i = count; while (i/2 &amp;gt; 0 &amp;amp;&amp;amp; a[i] &amp;gt; a[i/2]) { // 自下往上堆化 swap(a[i], a[i/2]); i = i/2; …  ]]></content></entry><entry><title>网络通信</title><url>/post/telecommunication-ot0ya.html</url><categories><category>网络</category></categories><tags><tag>网络</tag></tags><content type="html"><![CDATA[  网络通信 TCP/IP模型(+OSI模型 + 常用协议) OSI模型 TCP/IP模型 功能 数据封装 常用协议（设备） 应用层 应用层
 数据message HTTPS、HTTP、Telenet、FTP、TFTP、DNS、SMTP、SSH 表示层 会话层 传输层 传输层 决定传输方式 报文段（UDP datagram/TCP segment） TCP、UDP 网络层 网络层 决定传输路径 数据包（packet/datagram）、分组
 路由器、IP、ICMP、RIP、IGMP、OSPF、BGP 数据链路层 数据链路层 建立物理连接 帧frame 网桥、交换机、以太网、令牌环、PPP、PPTP、L2TP、ARP、ATMP、ARQ 物理层 物理层 比特流 物理线路、光纤、无线电、网线、集线器 IO多路复用 其他IO模型参考IO模型
 select 优点：兼容性好
