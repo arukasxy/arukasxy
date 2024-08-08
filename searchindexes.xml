@@ -86,7 +86,15 @@ g++ test.cpp -o test -fsanitize=address cmake和make编译
 代码 分配位置 char str[] 字符数组 栈或全局区 const char str[] 字符数组（即使字符串相同，其内存地址也不同） 栈或全局区 char *str=&amp;ldquo;hello&amp;rdquo; 字符常量（相同字符常量在文字常量区仅保存一份，即地址相同）
 文字常量区 const char *str=&amp;ldquo;hello&amp;rdquo; 文字常量区 int a = 0; # 全局初始化区 char *p1; # 全局未初始化区 main() { int b; # 栈 char s[] = &amp;#34;abc&amp;#34;; # 栈(char[]) char *p2; char *p3 = &amp;#34;123456&amp;#34;; # &amp;#34;123456&amp;#34;在常量区，p3在栈上。 static int c =0； # 全局（静态）初始化区 p1 = (char *)malloc(10); p2 = (char *)malloc(20); # 分配得来的10和20字节的区域在堆区。 strcpy(p1, &amp;#34;123456&amp;#34;); # 123456放在常量区，编译器可能会将它与p3所指向的&amp;#34;123456&amp;#34;优化成一个地方。 } 栈内存管理（stack） 通过{ } 限定作用域
 堆和栈区别 栈 堆 场景 小块、频繁的内存分配 延长变量的生命周期；栈中没有足够的空间 生长方向 向低地址增长 向高地址增长 容量 比较小，如8M(Linux 上通过 ulimit -s 查看) 和虚拟内存相关 分配效率 软硬件（push和pop指令、rbp和rsp寄存器，）​结合优（push和pop指令、rbp和rsp寄存器）​化（push和pop指令、rbp和rsp寄存器，），效率高 内存碎片 连续分配 不连续的，有内存碎片 分配回收 自动 手动 例子：
-string中在栈中分配空间给小字符串（&amp;lt;=15个字符的字符串） 堆内存管理（new/malloc） new malloc(#include &amp;lt;stdlib.h&amp;gt;) 内存大小计算 new A; (A *)malloc(sizeof(A)); 返回类型转换 对象类型的指针， …  ]]></content></entry><entry><title>git</title><url>/post/git-2gyb0l.html</url><categories><category>工具</category></categories><tags><tag>git</tag></tags><content type="html"><![CDATA[  git ​​
+string中在栈中分配空间给小字符串（&amp;lt;=15个字符的字符串） 堆内存管理（new/malloc） new malloc(#include &amp;lt;stdlib.h&amp;gt;) 内存大小计算 new A; (A *)malloc(sizeof(A)); 返回类型转换 对象类型的指针， …  ]]></content></entry><entry><title>cmake</title><url>/post/cmake-1gbot7.html</url><categories><category>工具</category></categories><tags><tag>cmake</tag></tags><content type="html"><![CDATA[  cmake 编译方式参考：cmake和make编译
+预定义变量 CMAKE_SOURCE_DIR：顶级CMakeLists.txt的文件夹
+PROJECT_SOURCE_DIR：包含最近的project()命令的CMakeLists.txt的文件夹
+如果项目中只有一个project()，则CMAKE_SOURCE_DIR和PROJECT_SOURCE_DIR均指项目的根目录
+CMAKE_CURRENT_SOURCE_DIR：当前CMakeLists.txt所在的目录
+PROJECT_BINARY_DIR：CMake生成一系列文件的目录，包括MakeFile等
+CMAKE_INSTALL_PREFIX：安装目录，默认/usr/local
+CMakeLists.txt 声明cmake最低版本 cmake_minimum_required( VERSION 2.8 ) 项目名称 PROJECT(test_math C CXX) PROJECT(recipe-01 LANGUAGES CXX) 生成compile_commands.json SET(CMAKE_EXPORT_COMPILE_COMMANDS True) 或在命令行（build.sh）中添加
+-DCMAKE_EXPORT_COMPILE_COMMANDS=on 设置输出目录（+安装目录） 使用cmake命令： cmake -DCMAKE_INSTALL_PREFIX=&amp;lt;install_path&amp;gt; 在CMakeLists.txt中： SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin) SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib) SET(CMAKE_INSTALL_PREFIX &amp;lt;install_path&amp;gt;) // 安装目录 设置头文件搜索路径 // 头文件在/my_lib/foo.h，源文件使用 #include &amp;#34;my_lib/foo.h&amp;#34; INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR} ) // 源文件使用 #include &amp;#34;foo.h&amp;#34; INCLUDE_DIRECTORIES( …  ]]></content></entry><entry><title>git</title><url>/post/git-2gyb0l.html</url><categories><category>工具</category></categories><tags><tag>git</tag></tags><content type="html"><![CDATA[  git ​​
 ​​
 远程仓库 查看远程仓库地址
 git remote -v clone代码 git clone 指定分支
