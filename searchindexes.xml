@@ -88,7 +88,13 @@ struct IMachine: IPrinter, IScanner class Derived: public BaseA, public BaseB { 
 作用：
 解决多继承/菱形继承的“数据冗余”：在一个派生类中保留间接基类的多份同名成员，例如A派生B和C，D继承了B和C，则A的成员变量和成员函数在D中有两份。虚继承中仅保留一份间接基类的成员。 解决命名冲突：D如果想访问A的成员变量，则编译器不知道它究竟来自 A &amp;ndash;&amp;gt;B&amp;ndash;&amp;gt;D 这条路径，还是来自 A&amp;ndash;&amp;gt;C&amp;ndash;&amp;gt;D 这条路径，产生二义性，需要使用B::m_a来指明。 使用：
 class B: virtual public A{} 多态 含义：根据不同的对象类型，调用不同的函数
-编译时 …  ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
+编译时 …  ]]></content></entry><entry><title>网络通信</title><url>/post/telecommunication-ot0ya.html</url><categories><category>网络</category></categories><tags><tag>网络</tag></tags><content type="html"><![CDATA[  网络通信 TCP/IP模型(+OSI模型 + 常用协议) OSI模型 TCP/IP模型 功能 数据封装 常用协议（设备） 应用层 应用层
+数据message HTTPS、HTTP、Telenet、FTP、TFTP、DNS、SMTP、SSH 表示层 会话层 传输层 传输层 决定传输方式 报文段（UDP datagram/TCP segment） TCP、UDP 网络层 网络层 决定传输路径 数据包（packet/datagram）、分组
+路由器、IP、ICMP、RIP、IGMP、OSPF、BGP 数据链路层 数据链路层 建立物理连接 帧frame 网桥、交换机、以太网、令牌环、PPP、PPTP、L2TP、ARP、ATMP、ARQ 物理层 物理层 比特流 物理线路、光纤、无线电、网线、集线器 IO多路复用 其他IO模型参考IO模型
+select 优点：兼容性好
+缺点：
+每次调用select函数时向OS传递监视对象信息 调用select函数后对所有文件描述符进行循环 监听的文件描述符数量 &amp;lt; FD_SIZE（1024） 场景：服务器端接入者少；程序应具有兼容性
+int select(int maxfd, fd_set *readset , fd_set *exceptset, const struct timeval *timeout); # maxfd 监视描述符数量，设置为最大的文件描述符值+1 # readset 将所有关注“是否存在待读取数据”的文件描述符注册到fd_set型变量 # writeset 将所有关注“是否可传输无阻塞数据”的文件描述符注册到fd_set型变量 # exceptset 将所有关注“是否发生异常”的文件描述符注册到fd_set型变量 # timeout为以1/1000秒为单位的等待时间，传递-1表示等待到事件发生，传递0表示执行一次非阻塞式的检查 # 返回：发生错误为-1，超时返回0，事件返回描述符数量 struct timeval { long tv_sec; // seconds long tv_usec; // mircroseconds } #include &amp;lt;sys/select.h&amp;gt; #include &amp;lt;sys/time.h&amp;gt; # 1. 设置文件描述符 fd_set reads, …  ]]></content></entry><entry><title>关于 Hugo NexT 组织</title><url>/about.html</url><categories/><tags/><content type="html">  Hugo NexT 组织是由众多喜爱 NexT 主题及风格的世界各地友人共同组建而成，为的就是让这个主题继续在 Hugo 引擎中也能得到发扬光大，在此也欢迎你的加入！
 我们的愿景 延续 NexT 经典的黑白调搭配，保持简单的易用性及强大的功能。
 使用反馈 加入 GitHub Discussions 或 Gitter 在线讨论 &amp;#x1f37b; GitHub Issues 提交错误报告 &amp;#x1f41b; GitHub Feature 表新功能的想法 &amp;#x2728; 同时国内用户也可加入 QQ 群交流： 604710815
   </content></entry><entry><title>站点示例</title><url>/flinks.html</url><categories/><tags/><content type="html">  如想交换本站友情链接，请在评论区留下你的站点信息，格式参考如下：
