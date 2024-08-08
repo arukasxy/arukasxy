@@ -5,7 +5,33 @@ Hugo 是现今世界上最快的网站建设框架，也是最流行的开源静
 快速开始 发表新文章 $ hugo new hello-world.md 更多信息： 内容格式 启动服务 $ hugo server 更多信息： Hugo 服务命令行 生成静态文件 $ hugo 更多信息： Hugo 建站 部署到服务器 $ hugo deploy 更多信息： Hugo 发布 祝你好运，相信你会喜欢上 Hugo 建站的旅程！
   </content></entry><entry><title>图像浏览工具</title><url>/demo/image-viewer.html</url><categories><category>示例文章</category></categories><tags><tag>图像</tag><tag>相册</tag><tag>浏览</tag></tags><content type="html">  本主题自带图像浏览器功能，支持对文章区域内出现的图片进行浏览，点击图片可以查看大图，点击空白处可以关闭。不需要配置任何参数，只要在文章里面相应的位置添加图片信息即可 。
 图像浏览器引用了 fengyuanchen 开发的 viewerjs ，支持显示图像名称，尺寸，旋转，缩放，播放等功能。可点击如下的示例图像查看体验：
-动物 风景   </content></entry><entry><title>没有H1-6标题头和评论的文章</title><url>/demo/no-header-title.html</url><categories><category>示例文章</category></categories><tags><tag>toc</tag><tag>标题</tag></tags><content type="html">  刘慈欣2018克拉克奖获奖感言（部分内容节选）。
+动物 风景   </content></entry><entry><title>优化查询表</title><url>/post/optimized-query-table-zjy2e7.html</url><categories/><tags/><content type="html">  优化查询表 判断系统瓶颈在 CPU、内存（IO、磁盘）、网络
+时空转换 时间换空间 压缩数据 指标：压缩比例、压缩速度、使用内存
+空间换时间 例子：
+CDN内容分发网络 集群服务器负载均衡 预先和延后处理 预取 特点：
+让IO和CPU重叠 延迟 特点：
+将操作延迟到必须执行的时刻 如果对象只在某种情况下使用，则在使用时再创建，可以先用指针来作为变量，创建时给它赋值 写时复制COW 原理：在创建一个新副本时，不会立即复制资源，而是共享原始副本的资源；当修改时再执行复制操作。
+场景：进程fork
+优点：减少不必要的资源分配，节省物理内存。
+缺点：fork后如果子进程进行大量写操作，那么会频繁地产生缺页异常，不断陷入内核态，复制资源，降低效率。
+例子：
+进程fork C++98版本的string Golang、PHP 中的 string、array 并行和异步 并行 多服务器并行（横向拓展）、多线程（纵向拓展）、指令级别并行
+例子：
+STL并行算法 异步 函数立刻返回，等数据到达后再通知函数。
+缓存和批量合并 缓存 经常访问的数据、重复创建和销毁，且创建销毁代价很大的对象
+例子：
+CPU各级缓存、文件系统、数据库查询缓存 连接池、线程池 批量合并 例子：
+批量IO读写 对数据库的读写操作，如一次查询多个键 合并网络请求 piggybacking捎带：数据捎带ACK 算法和数据结构 算法 例子：
+排序算法、压缩算法等常见算法替换 数据结构（访问模式） 如果算法中存在数据模式发生变化的点 且 频繁访问数据，那么可以将数据结构迁移到另一种数据结构。 选择合适的数据结构 例子：
+B树和B+树 构造链表（可以在任意位置插入），并在添加完最后一个元素后（不需要继续添加元素），将其复制到数组中以加快顺序访问速度。 很少按顺序访问，或需要按多个顺序访问时：
+将顺序与存储分离，将数据存储在向量vector或双端队列deque中，顺序由按所需顺序排序的指针数组来表示。 数据分类 例子：
+冷热数据分离，放到不同的存储介质中 零开销 无需为任何不使用的功能支付任何运行时成本
+场景：
+当使用一个强大的接口，且只使用它的一部分能力时 内存 顺序访问 将随机访问 转为 顺序访问
+例子：
+log、undo log 多线程 ‍
+‍
+  </content></entry><entry><title>没有H1-6标题头和评论的文章</title><url>/demo/no-header-title.html</url><categories><category>示例文章</category></categories><tags><tag>toc</tag><tag>标题</tag></tags><content type="html">  刘慈欣2018克拉克奖获奖感言（部分内容节选）。
 用于测试在没有H1-6标题头时，文章的目录导航是否会直接关闭，并关闭评论功能。
 先生们、女士们，晚上好，
 很荣幸获得Clarke Award for Imagination in Service to Society Award。
