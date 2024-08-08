@@ -50,7 +50,8 @@ Huffman树的结构不是唯一的，但带权路径和是唯一的。
 WPL = 2 * (32 + 19 + 21) + 4 * (6 + 7 + 10) + 5 * (3 + 2) = 261
 除根节点以外的所有数字的和
 WPL = 60 + 40 + 28 + 32 + 19 + 21 + 11 + 17 + 5 + 6 + 7 + 10 + 3 + 2 = 261
-K叉树（最佳归并树） 对于 k 叉树，设 m 为叶子数 , 若 ( m-1 ) % ( k-1 ) != 0 , 要增加虚(子叶)结点。虚节点数量需要使等式成立。 已知三叉树T中6个叶结点的权分别是2，3，4，5，6，7，T的带权路径长度最小是（46） 设外存上有120个初始归并段，进行12路归并时，为实现最佳归并，需要补充的虚段个数是（2）   </content></entry><entry><title>数字</title><url>/post/number-z2upfwa.html</url><categories><category>数据结构</category></categories><tags><tag>数字</tag></tags><content type="html"><![CDATA[  数字 大小范围（数值极限） 数据类型 大小 头文件 INT_MAX
+K叉树（最佳归并树） 对于 k 叉树，设 m 为叶子数 , 若 ( m-1 ) % ( k-1 ) != 0 , 要增加虚(子叶)结点。虚节点数量需要使等式成立。 已知三叉树T中6个叶结点的权分别是2，3，4，5，6，7，T的带权路径长度最小是（46） 设外存上有120个初始归并段，进行12路归并时，为实现最佳归并，需要补充的虚段个数是（2）   </content></entry><entry><title>链表</title><url>/post/linked-z1xhzbs.html</url><categories><category>数据结构</category></categories><tags><tag>链表</tag></tags><content type="html"><![CDATA[  链表 单向链表 #include &lt;forward_list&gt; push_front() // 无push_back() emplace_front() front() // 无back() int size = std::distance(std::begin(v), std::end(v)); 成员函数 不支持size()
+函数 功能 before_begin() 返回指向第一个元素之前位置的迭代器 push_front() 头部插入 pop_front() 头部删除 insert_after() 插入元素 erase_after() 删除指定元素 双向链表 #include &lt;list&gt; # 创建一个有十个元素的list对象，每个元素都为4 list&lt;int&gt; l(10,4); 成员函数 函数 功能 push_back 尾部插入 push_front 头部插入 pop_back 尾部删除 pop_front 头部删除 剪切splice # 将it指向的元素剪切到x的position上去，不会导致迭代器it失效 void splice ( iterator position, list&lt;T,Allocator&gt;&amp; x, iterator it );   ]]></content></entry><entry><title>数字</title><url>/post/number-z2upfwa.html</url><categories><category>数据结构</category></categories><tags><tag>数字</tag></tags><content type="html"><![CDATA[  数字 大小范围（数值极限） 数据类型 大小 头文件 INT_MAX
 INT_MIN 2147483647(10位)
 -2147483648
 limits.h FLT_MAX
